@@ -150,6 +150,10 @@ div.title img {
 }
 div.title {
   vertical-align: middle; 
+  background-image: url("images/efrei.png");
+  background-position: 0.5% 1%;
+  background-size: 20%;
+
 }
 div.title > p:first-child {
   text-align: center;
@@ -211,7 +215,7 @@ div img {
 li p { line-height: 1.25em; }
 
 div.extra-details {
-  background-image: url("images/extra-details.png");
+  /* background-image: url("images/extra-details.png"); */
   background-position: 0.5% 1%;
   background-size: 4%;
 }

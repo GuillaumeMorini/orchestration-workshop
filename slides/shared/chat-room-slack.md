@@ -10,3 +10,4 @@
 
 - Say hi in the chat room!
 
+<img src="images/slack-qr-code.png" alt="Slack QR Code" width="200" align="right"/>

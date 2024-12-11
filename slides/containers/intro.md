@@ -1,16 +1,10 @@
 ## A brief introduction
 
-- This was initially written to support in-person, instructor-led workshops and tutorials
+- These materials reuse work done by [Jérôme Petazzoni](https://twitter.com/jpetazzo) and [multiple contributors](https://@@GITREPO@@/graphs/contributors)
 
-- These materials are maintained by [Jérôme Petazzoni](https://twitter.com/jpetazzo) and [multiple contributors](https://@@GITREPO@@/graphs/contributors)
+- I have included as much information as possible in these slides
 
-- You can also follow along on your own, at your own pace
-
-- We included as much information as possible in these slides
-
-- We recommend having a mentor to help you ...
-
-- ... Or be comfortable spending some time reading the Docker
+- ... but be comfortable spending some time reading the Docker
  [documentation](https://docs.docker.com/) ...
 
 - ... And looking for answers in the [Docker forums](https://forums.docker.com),

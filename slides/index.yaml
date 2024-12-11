@@ -1,3 +1,16 @@
+
+
+- date: [2025-01-20, 2025-06-12]
+  country: fr
+  city: Paris
+  event: EFREI
+  speaker: GuillaumeMorini
+  title: ARAS85 Orchestration et containers
+  lang: fr
+  attend: https://www.efrei.fr/programme-grande-ecole/cycle-ingenieur-par-apprentissage-ri/
+  #slides: https://2021-05-enix.container.training/1.yml.html
+
+
 - date: [2021-09-27, 2021-09-29]
   country: www
   city: streaming

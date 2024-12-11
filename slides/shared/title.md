@@ -1,17 +1,17 @@
-class: title, self-paced
-
-@@TITLE@@
-
-.nav[*Self-paced version*]
-
----
-
 class: title, in-person
 
-@@TITLE@@<br/></br>
+@@TITLE@@<br /><br />
+
+<div style="text-align: right"><a href="https://www.youtube.com/watch?v=h16zyxiwDLY"> Video </a></div>
+
+[@GuillaumeMorini]: https://twitter.com/GuillaumeMorini
 
 .footnote[
-**Slides[:](https://www.youtube.com/watch?v=h16zyxiwDLY) @@SLIDES@@**
+    Enseignant: [@GuillaumeMorini] <br/>
+    Formation Ingénieur en apprentissage<br/>
+    majeure « Réseaux et Sécurité »<br/>
+    2ème année
+    <!-- **Slides: @@SLIDES@@** -->
 ]
 
 <!--
