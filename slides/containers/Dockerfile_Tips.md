@@ -385,7 +385,7 @@ EXPOSE 5000
 ```
 
 (Source: [trainingwheels Dockerfile](https://github.com/jpetazzo/trainingwheels/blob/master/www/Dockerfile))
-
+<!-- 
 ---
 
 ## Development Compose file
@@ -414,7 +414,7 @@ services:
 ```
 ]
 
-(Source: [trainingwheels Compose file](https://github.com/jpetazzo/trainingwheels/blob/master/docker-compose.yml))
+(Source: [trainingwheels Compose file](https://github.com/jpetazzo/trainingwheels/blob/master/docker-compose.yml)) -->
 
 ---
 

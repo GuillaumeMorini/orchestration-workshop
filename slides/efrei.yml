@@ -2,7 +2,12 @@ title: |
   ARAS85 
   Orchestration et containers
 
-chat: "[Slack](https://join.slack.com/t/aras85orchest-lwy9376/shared_invite/zt-2w32spbsy-rqBAewoFnVDqHf1iHT9tDQ)"
+#RS1
+chat: "[Teams](https://teams.microsoft.com/l/team/19%3AhDyLe_wF4EzV8ZwhO0X9vj_j1Cg7baPkrFbvI4homEM1%40thread.tacv2/conversations?groupId=9388dd59-aeb3-474e-b7c7-620e860359de&tenantId=413600cf-bd4e-4c7c-8a61-69e73cddf731)"
+#RS2
+#chat: "[Teams](https://teams.microsoft.com/l/team/19%3A31bCaDk1WQYhWWP_m45izNAl19qO7u2O1PwouHsZaGs1%40thread.tacv2/conversations?groupId=fcd9c605-6f12-4f42-829d-b5627c191a39&tenantId=413600cf-bd4e-4c7c-8a61-69e73cddf731)"
+#RS3
+#chat: "[Teams](https://teams.microsoft.com/l/team/19%3AJV4B-bXErljpg88jVlIfmsnz4k5nUEJTpypddJvo_q81%40thread.tacv2/conversations?groupId=f870da21-6c1c-461c-b272-c3089b196036&tenantId=413600cf-bd4e-4c7c-8a61-69e73cddf731)"
 #chat: "[Gitter](https://gitter.im/jpetazzo/workshop-yyyymmdd-city)"
 
 gitrepo: https://github.com/GuillaumeMorini/orchestration-workshop
@@ -20,7 +25,8 @@ content:
 - containers/intro.md
 #- shared/about-slides.md
 #- shared/chat-room-im.md
-- shared/chat-room-slack.md
+#- shared/chat-room-slack.md
+- shared/chat-room-teams.md
 #- shared/chat-room-zoom-meeting.md
 #- shared/chat-room-zoom-webinar.md
 - shared/toc.md
