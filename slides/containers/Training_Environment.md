@@ -9,33 +9,17 @@ class: title
 
 ## Our training environment
 
-- If you are attending a tutorial or workshop:
+- 2 VMs has been provisioned for three students
 
-  - a VM has been provisioned for each student
+- They were created just before the training.
 
-- If you are doing or re-doing this course on your own, you can:
+- They will stay up during the whole training.
 
-  - install Docker locally (as explained in the chapter "Installing Docker")
+- They will be destroyed shortly after the training.
 
-  - install Docker on e.g. a cloud VM
+- They do not come pre-loaded with Docker, so you need to install everything.
 
-  - use https://www.play-with-docker.com/ to instantly get a training environment
-
----
-
-## Our Docker VM
-
-*This section assumes that you are following this course as part of
-a tutorial, training or workshop, where each student is given an
-individual Docker VM.*
-
-- The VM is created just before the training.
-
-- It will stay up during the whole training.
-
-- It will be destroyed shortly after the training.
-
-- It comes pre-loaded with Docker and some other useful tools.
+<img src="images/qrcode_docs.google.com.png" alt="VMs Sheets QR Code" width="200" align="right"/>
 
 ---
 
@@ -61,7 +45,7 @@ individual Docker VM.*
 
 - This could put a bit of stress on the local WiFi and slow us down.
 
-- Instead, we use a remote VM that has a good connectivity
+- Instead, we use remote VMs that has a good connectivity
 
 - In some rare cases, installing Docker locally is challenging:
 
@@ -95,27 +79,9 @@ $ ssh <login>@<ip-address>
 
 ---
 
-class: in-person
-
-## `tailhist`
-
-The shell history of the instructor is available online in real time.
-
-Note the IP address of the instructor's virtual machine (A.B.C.D).
-
-Open http://A.B.C.D:1088 in your browser and you should see the history.
-
-The history is updated in real time (using a WebSocket connection).
-
-It should be green when the WebSocket is connected.
-
-If it turns red, reloading the page should fix it.
-
----
-
 ## Checking your Virtual Machine
 
-Once logged in, make sure that you can run a basic Docker command:
+Once logged in, goal is to be able to run a basic Docker command:
 
 .small[
 ```bash

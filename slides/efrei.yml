@@ -37,51 +37,133 @@ content:
   - containers/First_Containers.md
   - containers/Background_Containers.md
   - containers/Initial_Images.md
--
   - containers/Building_Images_Interactively.md
   - containers/Building_Images_With_Dockerfiles.md
   - containers/Cmd_And_Entrypoint.md
   - containers/Copying_Files_During_Build.md
   - containers/Exercise_Dockerfile_Basic.md
--
+- # DAY 2
   - containers/Dockerfile_Tips.md
   - containers/Multi_Stage_Builds.md
   - containers/Publishing_To_Docker_Hub.md
   - containers/Exercise_Dockerfile_Advanced.md
--
   - containers/Naming_And_Inspecting.md
   - containers/Labels.md
   - containers/Start_And_Attach.md
   - containers/Getting_Inside.md
   - containers/Resource_Limits.md
-- # DAY 2
+- # DAY 3
   - containers/Container_Networking_Basics.md
   - containers/Network_Drivers.md
   - containers/Container_Network_Model.md
--
   - containers/Local_Development_Workflow.md
   - containers/Working_With_Volumes.md
   - shared/yaml.md
   - containers/Compose_For_Dev_Stacks.md
   - containers/Exercise_Composefile.md
--
+- # DAY 4
   - containers/Installing_Docker.md
   - containers/Container_Engines.md
   - containers/Init_Systems.md
   - containers/Advanced_Dockerfiles.md
   - containers/Buildkit.md
--
   - containers/Application_Configuration.md
   - containers/Logging.md
   - containers/Orchestration_Overview.md
+- # DAY 5
+  - k8s/concepts-k8s.md
+  - k8s/kubectlget.md
+  - k8s/kubectl-run.md
+  - k8s/batch-jobs.md
+  - k8s/labels-annotations.md
+  - k8s/kubectl-logs.md
+  - k8s/logs-cli.md
+  - shared/declarative.md
+  - k8s/declarative.md
+  - k8s/deploymentslideshow.md
+  - k8s/kubectlexpose.md
+  - k8s/service-types.md
+  - k8s/kubenet.md
+  - k8s/shippingimages.md
+  #- k8s/buildshiprun-selfhosted.md
+  - k8s/buildshiprun-dockerhub.md
+  - k8s/ourapponkube.md
+  #- k8s/exercise-wordsmith.md
+- # DAY 6
+  - k8s/yamldeploy.md
+  - k8s/setup-overview.md
+  - k8s/setup-devel.md
+  #- k8s/setup-managed.md
+  #- k8s/setup-selfhosted.md
+  - k8s/dashboard.md
+  - k8s/k9s.md
+  #- k8s/tilt.md
+  #- k8s/kubectlscale.md
+  - k8s/scalingdockercoins.md
+  - shared/hastyconclusions.md
+  - k8s/daemonset.md
+  - shared/yaml.md
+  #- k8s/exercise-yaml.md
+  - k8s/localkubeconfig.md
+  #- k8s/access-eks-cluster.md
+  - k8s/accessinternal.md
+  #- k8s/kubectlproxy.md
+  - k8s/rollout.md
+  - k8s/healthchecks.md
+  #- k8s/healthchecks-more.md
+  - k8s/record.md
+- # DAY 7
+  - k8s/namespaces.md
+  - k8s/ingress.md
+  #- k8s/ingress-advanced.md
+  #- k8s/ingress-canary.md
+  #- k8s/ingress-tls.md
+  - k8s/kustomize.md
+  - k8s/helm-intro.md
+  - k8s/helm-chart-format.md
+  - k8s/helm-create-basic-chart.md
+  - k8s/helm-create-better-chart.md
+  - k8s/helm-dependencies.md
+  - k8s/helm-values-schema-validation.md
+  - k8s/helm-secrets.md
+  #- k8s/exercise-helm.md
+  #- k8s/ytt.md
+  - k8s/gitlab.md
+- # DAY 8
+  - k8s/netpol.md
+  - k8s/authn-authz.md
+  #- k8s/csr-api.md
+  #- k8s/openid-connect.md
+  #- k8s/pod-security-intro.md
+  #- k8s/pod-security-policies.md
+  #- k8s/pod-security-admission.md
+  - k8s/volumes.md
+  #- k8s/exercise-configmap.md
+  #- k8s/build-with-docker.md
+  #- k8s/build-with-kaniko.md
+  - k8s/configuration.md
+  - k8s/secrets.md
+  - k8s/logs-centralized.md
+  #- k8s/prometheus.md
+  #- k8s/prometheus-stack.md
+  - k8s/statefulsets.md
+  - k8s/consul.md
+  - k8s/pv-pvc-sc.md
+  - k8s/volume-claim-templates.md
+  #- k8s/portworx.md
+  - k8s/openebs.md
+  - k8s/stateful-failover.md
+  #- k8s/extending-api.md
+  #- k8s/admission.md
+  #- k8s/operators.md
+  #- k8s/operators-design.md
+  #- k8s/operators-example.md
+  #- k8s/staticpods.md
+  #- k8s/owners-and-dependents.md
+  #- k8s/gitworkflows.md
 -
+  - k8s/whatsnext.md
+  - k8s/lastwords.md
   - shared/thankyou.md
   - containers/links.md
-#-
-  #- containers/Docker_Machine.md
-  #- containers/Ambassadors.md
-  #- containers/Namespaces_Cgroups.md
-  #- containers/Copy_On_Write.md
-  #- containers/Containers_From_Scratch.md
-  #- containers/Pods_Anatomy.md
-  #- containers/Ecosystem.md
+  - k8s/links.md

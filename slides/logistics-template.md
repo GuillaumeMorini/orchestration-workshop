@@ -10,7 +10,6 @@
 
 - Use @@CHAT@@ to ask questions, get help, etc.
 
-<img src="images/slack-qr-code.png" alt="Slack QR Code" width="150" align="right"/>
 
 [@GuillaumeMorini]: https://twitter.com/GuillaumeMorini
 
