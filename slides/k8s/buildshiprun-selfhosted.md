@@ -139,37 +139,12 @@ The curl command should now output:
 
 ---
 
-## Building and pushing our images
-
-- We are going to use a convenient feature of Docker Compose
-
-.lab[
-
-- Go to the `stacks` directory:
-  ```bash
-  cd ~/container.training/stacks
-  ```
-
-- Build and push the images:
-  ```bash
-  export REGISTRY
-  export TAG=v0.1
-  docker-compose -f dockercoins.yml build
-  docker-compose -f dockercoins.yml push
-  ```
-
-]
-
-Let's have a look at the `dockercoins.yml` file while this is building and pushing.
-
----
-
 ```yaml
 version: "3"
 
 services:
   rng:
-    build: dockercoins/rng
+    build: rng
     image: ${REGISTRY-127.0.0.1:5000}/rng:${TAG-latest}
     deploy:
       mode: global
@@ -178,7 +153,7 @@ services:
     image: redis
   ...
   worker:
-    build: dockercoins/worker
+    build: worker
     image: ${REGISTRY-127.0.0.1:5000}/worker:${TAG-latest}
     ...
     deploy:
@@ -186,6 +161,31 @@ services:
 ```
 
 .warning[Just in case you were wondering ... Docker "services" are not Kubernetes "services".]
+
+---
+
+## Building and pushing our images
+
+- We are going to use a convenient feature of Docker Compose
+
+.lab[
+
+- Go to the `stacks` directory:
+  ```bash
+  cd ~/TP-Docker
+  ```
+
+- Build and push the images:
+  ```bash
+  export REGISTRY
+  export TAG=v0.1
+  docker-compose build
+  docker-compose push
+  ```
+
+]
+
+Let's have a look at the `docker-compose.yml` file while this is building and pushing.
 
 ---
 
@@ -227,7 +227,7 @@ class: extra-details
 ]
 
 *In these slides, all the commands to deploy
-DockerCoins will use a $REGISTRY environment
+the app will use a $REGISTRY environment
 variable, so that we can quickly switch from
 the self-hosted registry to pre-built images
 hosted on the Docker Hub. So make sure that

@@ -1,1 +1,0 @@
-../../providers/openstack/variables.tf

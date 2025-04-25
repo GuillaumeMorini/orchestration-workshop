@@ -1,37 +1,5 @@
 # Daemon sets
 
-- We want to scale `rng` in a way that is different from how we scaled `worker`
-
-- We want one (and exactly one) instance of `rng` per node
-
-- We *do not want* two instances of `rng` on the same node
-
-- We will do that with a *daemon set*
-
----
-
-## Why not a deployment?
-
-- Can't we just do `kubectl scale deployment rng --replicas=...`?
-
---
-
-- Nothing guarantees that the `rng` containers will be distributed evenly
-
-- If we add nodes later, they will not automatically run a copy of `rng`
-
-- If we remove (or reboot) a node, one `rng` container will restart elsewhere
-
-  (and we will end up with two instances `rng` on the same node)
-
-- By contrast, a daemon set will start one pod per node and keep it that way
-
-  (as nodes are added or removed)
-
----
-
-## Daemon sets in practice
-
 - Daemon sets are great for cluster-wide, per-node processes:
 
   - `kube-proxy`
@@ -52,7 +20,7 @@
 
 <!-- ##VERSION## -->
 
-- Unfortunately, as of Kubernetes 1.27, the CLI cannot create daemon sets
+- Unfortunately, as of Kubernetes 1.32, the CLI cannot create daemon sets
 
 --
 
@@ -99,15 +67,15 @@
 
 - Generate the YAML for a Deployment:
   ```bash
-    kubectl create deployment rng --image=dockercoins/rng:v0.1 \
+    kubectl create deployment test --image=test \
             -o yaml --dry-run=client
   ```
   
 - Save it to a file:
   ```bash
-    kubectl create deployment rng --image=dockercoins/rng:v0.1 \
+    kubectl create deployment test --image=test \
             -o yaml --dry-run=client \
-            > rng.yaml
+            > test.yaml
   ```
   
 ]
@@ -123,7 +91,7 @@
 - Edit the YAML file and make the change
 
 <!--
-```bash vim rng.yaml```
+```bash vim test.yaml```
 ```wait kind: Deployment```
 ```keys /Deployment```
 ```key ^J```
@@ -150,7 +118,7 @@
 
 - Try to `kubectl apply` our new YAML:
   ```bash
-  kubectl apply -f rng.yaml
+  kubectl apply -f test.yaml
   ```
 
 ]
@@ -187,11 +155,11 @@
 
 .lab[
 
-- Edit the `rng.yaml` file and remove the `replicas:` line
+- Edit the `test.yaml` file and remove the `replicas:` line
 
 - Then try to create the DaemonSet again:
   ```bash
-  kubectl apply -f rng.yaml
+  kubectl apply -f test.yaml
   ```
 
 ]
@@ -215,7 +183,7 @@
 
 --
 
-We have two resources called `rng`:
+We have two resources called `test`:
 
 - the *deployment* that was existing before
 
@@ -227,24 +195,24 @@ We also have one too many pods.
 
 ---
 
-## `deploy/rng` and `ds/rng`
+## `deploy/test` and `ds/test`
 
 - You can have different resource types with the same name
 
-  (i.e. a *deployment* and a *daemon set* both named `rng`)
+  (i.e. a *deployment* and a *daemon set* both named `test`)
 
-- We still have the old `rng` *deployment*
+- We still have the old `test` *deployment*
 
   ```
 NAME                       DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/rng        1         1         1            1           18m
+deployment.apps/test        1         1         1            1           18m
   ```
 
-- But now we have the new `rng` *daemon set* as well
+- But now we have the new `test` *daemon set* as well
 
   ```
 NAME                DESIRED  CURRENT  READY  UP-TO-DATE  AVAILABLE  NODE SELECTOR  AGE
-daemonset.apps/rng  2        2        2      2           2          <none>         9s
+daemonset.apps/test  2        2        2      2           2          <none>         9s
   ```
 
 ---
@@ -253,15 +221,15 @@ daemonset.apps/rng  2        2        2      2           2          <none>      
 
 - If we check with `kubectl get pods`, we see:
 
-  - *one pod* for the deployment (named `rng-xxxxxxxxxx-yyyyy`)
+  - *one pod* for the deployment (named `test-xxxxxxxxxx-yyyyy`)
 
-  - *one pod per node* for the daemon set (named `rng-zzzzz`)
+  - *one pod per node* for the daemon set (named `test-zzzzz`)
 
   ```
   NAME                        READY     STATUS    RESTARTS   AGE
-  rng-54f57d4d49-7pt82        1/1       Running   0          11m
-  rng-b85tm                   1/1       Running   0          25s
-  rng-hfbrr                   1/1       Running   0          25s
+  test-54f57d4d49-7pt82        1/1       Running   0          11m
+  test-b85tm                   1/1       Running   0          25s
+  test-hfbrr                   1/1       Running   0          25s
   [...]
   ```
 
@@ -277,42 +245,24 @@ The control plane node has [taints](https://kubernetes.io/docs/concepts/configur
 
 ---
 
-## Is this working?
-
-- Look at the web UI
-
---
-
-- The graph should now go above 10 hashes per second!
-
---
-
-- It looks like the newly created pods are serving traffic correctly
-
-- How and why did this happen?
-
-  (We didn't do anything special to add them to the `rng` service load balancer!)
-
----
-
 # Labels and selectors
 
-- The `rng` *service* is load balancing requests to a set of pods
+- The `test` *service* is load balancing requests to a set of pods
 
-- That set of pods is defined by the *selector* of the `rng` service
+- That set of pods is defined by the *selector* of the `test` service
 
 .lab[
 
-- Check the *selector* in the `rng` service definition:
+- Check the *selector* in the `test` service definition:
   ```bash
-  kubectl describe service rng
+  kubectl describe service test
   ```
 
 ]
 
-- The selector is `app=rng`
+- The selector is `app=test`
 
-- It means "all the pods having the label `app=rng`"
+- It means "all the pods having the label `app=test`"
 
   (They can have additional labels as well, that's OK!)
 
@@ -326,26 +276,26 @@ The control plane node has [taints](https://kubernetes.io/docs/concepts/configur
 
 .lab[
 
-- Get the list of pods matching selector `app=rng`:
+- Get the list of pods matching selector `app=test`:
   ```bash
-  kubectl get pods -l app=rng
-  kubectl get pods --selector app=rng
+  kubectl get pods -l app=test
+  kubectl get pods --selector app=test
   ```
 
 ]
 
-But ... why do these pods (in particular, the *new* ones) have this `app=rng` label?
+But ... why do these pods (in particular, the *new* ones) have this `app=test` label?
 
 ---
 
 ## Where do labels come from?
 
-- When we create a deployment with `kubectl create deployment rng`,
-  <br/>this deployment gets the label `app=rng`
+- When we create a deployment with `kubectl create deployment test`,
+  <br/>this deployment gets the label `app=test`
 
-- The replica sets created by this deployment also get the label `app=rng`
+- The replica sets created by this deployment also get the label `app=test`
 
-- The pods created by these replica sets also get the label `app=rng`
+- The pods created by these replica sets also get the label `app=test`
 
 - When we created the daemon set from the deployment, we re-used the same spec
 
@@ -367,7 +317,7 @@ But ... why do these pods (in particular, the *new* ones) have this `app=rng` la
 
 --
 
-- What would happen if we removed the `app=rng` label from that pod?
+- What would happen if we removed the `app=test` label from that pod?
 
 --
 
@@ -397,7 +347,7 @@ But ... why do these pods (in particular, the *new* ones) have this `app=rng` la
 
 - Yes, we can fool them by manually creating pods with the "right" labels
 
-- Bottom line: if we remove our `app=rng` label ...
+- Bottom line: if we remove our `app=test` label ...
 
  ... The pod "disappears" for its parent, which re-creates another pod to replace it
 
@@ -407,7 +357,7 @@ class: extra-details
 
 ## Isolation of replica sets and daemon sets
 
-- Since both the `rng` daemon set and the `rng` replica set use `app=rng` ...
+- Since both the `test` daemon set and the `test` replica set use `app=test` ...
 
   ... Why don't they "find" each other's pods?
 
@@ -415,11 +365,11 @@ class: extra-details
 
 - *Replica sets* have a more specific selector, visible with `kubectl describe`
 
-  (It looks like `app=rng,pod-template-hash=abcd1234`)
+  (It looks like `app=test,pod-template-hash=abcd1234`)
 
 - *Daemon sets* also have a more specific selector, but it's invisible
 
-  (It looks like `app=rng,controller-revision-hash=abcd1234`)
+  (It looks like `app=test,controller-revision-hash=abcd1234`)
 
 - As a result, each controller only "sees" the pods it manages
 
@@ -427,7 +377,7 @@ class: extra-details
 
 ## Removing a pod from the load balancer
 
-- Currently, the `rng` service is defined by the `app=rng` selector
+- Currently, the `test` service is defined by the `app=test` selector
 
 - The only way to remove a pod is to remove or change the `app` label
 
@@ -437,7 +387,7 @@ class: extra-details
 
 --
 
-- We need to change the selector of the `rng` service!
+- We need to change the selector of the `test` service!
 
 - Let's add another label to that selector (e.g. `active=yes`) 
 
@@ -465,9 +415,9 @@ class: extra-details
 
 ## The plan
 
-1. Add the label `active=yes` to all our `rng` pods
+1. Add the label `active=yes` to all our `test` pods
 
-2. Update the selector for the `rng` service to also include `active=yes`
+2. Update the selector for the `test` service to also include `active=yes`
 
 3. Toggle traffic to a pod by manually adding/removing the `active` label
 
@@ -484,7 +434,7 @@ be any interruption.*
 
 ## Adding labels to pods
 
-- We want to add the label `active=yes` to all pods that have `app=rng`
+- We want to add the label `active=yes` to all pods that have `app=test`
 
 - We could edit each pod one by one with `kubectl edit` ...
 
@@ -494,9 +444,9 @@ be any interruption.*
 
 .lab[
 
-- Add `active=yes` to all pods that have `app=rng`:
+- Add `active=yes` to all pods that have `app=test`:
   ```bash
-  kubectl label pods -l app=rng active=yes
+  kubectl label pods -l app=test active=yes
   ```
 
 ]
@@ -507,7 +457,7 @@ be any interruption.*
 
 - We need to edit the service specification
 
-- Reminder: in the service definition, we will see `app: rng` in two places
+- Reminder: in the service definition, we will see `app: test` in two places
 
   - the label of the service itself (we don't need to touch that one)
 
@@ -517,12 +467,12 @@ be any interruption.*
 
 - Update the service to add `active: yes` to its selector:
   ```bash
-  kubectl edit service rng
+  kubectl edit service test
   ```
 
 <!--
 ```wait Please edit the object below```
-```keys /app: rng```
+```keys /app: test```
 ```key ^J```
 ```keys noactive: yes```
 ```key ^[``` ]
@@ -608,7 +558,7 @@ If we did everything correctly, the web UI shouldn't show any change.
 
 - In one window, check the logs of that pod:
   ```bash
-  POD=$(kubectl get pod -l app=rng,pod-template-hash -o name)
+  POD=$(kubectl get pod -l app=test,pod-template-hash -o name)
   kubectl logs --tail 1 --follow $POD
   ```
   (We should see a steady stream of HTTP logs)
@@ -620,7 +570,7 @@ If we did everything correctly, the web UI shouldn't show any change.
 
 - In another window, remove the label from the pod:
   ```bash
-  kubectl label pod -l app=rng,pod-template-hash active-
+  kubectl label pod -l app=test,pod-template-hash active-
   ```
   (The stream of HTTP logs should stop immediately)
 
@@ -632,7 +582,7 @@ If we did everything correctly, the web UI shouldn't show any change.
 ]
 
 There might be a slight change in the web UI (since we removed a bit
-of capacity from the `rng` service). If we remove more pods,
+of capacity from the `test` service). If we remove more pods,
 the effect should be more visible.
 
 ---
@@ -647,7 +597,7 @@ class: extra-details
 
 - If we want these pods to have that label, we need to edit the daemon set spec
 
-- We can do that with e.g. `kubectl edit daemonset rng`
+- We can do that with e.g. `kubectl edit daemonset test`
 
 ---
 

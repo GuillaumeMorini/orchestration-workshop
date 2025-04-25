@@ -11,10 +11,10 @@
 
 - Deploy everything else:
   ```bash
-  kubectl create deployment hasher --image=dockercoins/hasher:v0.1
-  kubectl create deployment rng --image=dockercoins/rng:v0.1
-  kubectl create deployment webui --image=dockercoins/webui:v0.1
-  kubectl create deployment worker --image=dockercoins/worker:v0.1
+  kubectl create deployment hasher --image=$REGISTRY/hasher:$TAG
+  kubectl create deployment rng --image=$REGISTRY/rng:$TAG
+  kubectl create deployment webui --image=$REGISTRY/webui:$TAG
+  kubectl create deployment worker --image=$REGISTRY/worker:$TAG
   ```
 
 ]
@@ -32,8 +32,6 @@ class: extra-details
 - ... We could use the following snippet:
 
 ```bash
-  REGISTRY=dockercoins
-  TAG=v0.1
   for SERVICE in hasher rng webui worker; do
     kubectl create deployment $SERVICE --image=$REGISTRY/$SERVICE:$TAG
   done

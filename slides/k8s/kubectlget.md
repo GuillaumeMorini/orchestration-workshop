@@ -446,27 +446,6 @@ class: extra-details
 
 ---
 
-class: extra-details
-
-## What about `kube-node-lease`?
-
-- Starting with Kubernetes 1.14, there is a `kube-node-lease` namespace
-
-  (or in Kubernetes 1.13 if the NodeLease feature gate is enabled)
-
-- That namespace contains one Lease object per node
-
-- *Node leases* are a new way to implement node heartbeats
-
-  (i.e. node regularly pinging the control plane to say "I'm alive!")
-
-- For more details, see [Efficient Node Heartbeats KEP] or the [node controller documentation]
-
-[Efficient Node Heartbeats KEP]: https://github.com/kubernetes/enhancements/blob/master/keps/sig-node/589-efficient-node-heartbeats/README.md
-[node controller documentation]: https://kubernetes.io/docs/concepts/architecture/nodes/#node-controller
-
----
-
 ## Services
 
 - A *service* is a stable endpoint to connect to "something"

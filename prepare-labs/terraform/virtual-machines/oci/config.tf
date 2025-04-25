@@ -1,1 +1,0 @@
-../../providers/oci/config.tf

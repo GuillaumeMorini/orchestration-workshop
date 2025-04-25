@@ -79,20 +79,6 @@
 
   (blue/green deployment, canary deployment)
 
---
-
-.footnote[
-On the next page: canary cage with an oxygen bottle, designed to keep the canary alive.
-<br/>
-(See https://post.lurk.org/@zilog/109632335293371919 for details.)
-]
-
----
-
-class: pic
-
-![Canary cage](images/canary-cage.jpg)
-
 ---
 
 ## More things that Kubernetes can do for us
@@ -121,33 +107,7 @@ class: pic
 
 class: pic
 
-![haha only kidding](images/k8s-arch1.png)
-
----
-
-## Kubernetes architecture
-
-- Ha ha ha ha
-
-- OK, I was trying to scare you, it's much simpler than that ❤️
-
----
-
-class: pic
-
 ![that one is more like the real thing](images/k8s-arch2.png)
-
----
-
-## Credits
-
-- The first schema is a Kubernetes cluster with storage backed by multi-path iSCSI
-
-  (Courtesy of [Yongbok Kim](https://www.yongbok.net/blog/))
-
-- The second one is a simplified representation of a Kubernetes cluster
-
-  (Courtesy of [Imesh Gunaratne](https://medium.com/containermind/a-reference-architecture-for-deploying-wso2-middleware-on-kubernetes-d4dee7601e8e))
 
 ---
 
@@ -254,21 +214,6 @@ class: pic
 
 ---
 
-class: pic
-![](images/control-planes/non-dedicated-stacked-nodes.svg)
-
----
-
-class: pic
-![](images/control-planes/advanced-control-plane.svg)
-
----
-
-class: pic
-![](images/control-planes/advanced-control-plane-split-events.svg)
-
----
-
 class: extra-details
 
 ## How many nodes should a cluster have?
@@ -307,8 +252,6 @@ No!
 
 - We can leverage other pluggable runtimes through the *Container Runtime Interface*
 
-- <del>We could also use `rkt` ("Rocket") from CoreOS</del> (deprecated)
-
 ---
 
 class: extra-details
@@ -328,28 +271,6 @@ class: extra-details
   - designed specifically as a minimal runtime for Kubernetes
 
 - [And more](https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
-
----
-
-class: extra-details
-
-## Do we need to run Docker at all?
-
-Yes!
-
---
-
-- In this workshop, we run our app on a single node first
-
-- We will need to build images and ship them around
-
-- We can do these things without Docker
-  <br/>
-  (but with some languages/frameworks, it might be much harder)
-
-- Docker is still the most stable container engine today
-  <br/>
-  (but other options are maturing very quickly)
 
 ---
 
@@ -431,23 +352,3 @@ class: pic
 
 - Both scenarios can make sense, depending on our goals
 
----
-
-## Credits
-
-- The first diagram is courtesy of Lucas Käldström, in [this presentation](https://speakerdeck.com/luxas/kubeadm-cluster-creation-internals-from-self-hosting-to-upgradability-and-ha)
-
-  - it's one of the best Kubernetes architecture diagrams available!
-
-- The second diagram is courtesy of Weave Works
-
-  - a *pod* can have multiple containers working together
-
-  - IP addresses are associated with *pods*, not with individual containers
-
-Both diagrams used with permission.
-
-???
-
-:EN:- Kubernetes concepts
-:FR:- Kubernetes en théorie

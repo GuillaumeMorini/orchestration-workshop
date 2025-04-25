@@ -1,1 +1,0 @@
-../../providers/civo/config.tf

@@ -152,7 +152,7 @@ The `curl` command should show us the "Welcome to nginx!" page.
 
 - Apply the policy in this YAML file:
   ```bash
-    kubectl apply -f ~/container.training/k8s/netpol-deny-all-for-testweb.yaml
+    kubectl apply -f netpol-deny-all-for-testweb.yaml
   ```
 
 - Check if we can still access the server:
@@ -191,7 +191,7 @@ This is the file that we applied:
 
 - Apply another policy:
   ```bash
-  kubectl apply -f ~/container.training/k8s/netpol-allow-testcurl-for-testweb.yaml
+  kubectl apply -f netpol-allow-testcurl-for-testweb.yaml
   ```
 
 ]
@@ -275,107 +275,6 @@ The second command will fail and time out after 3 seconds.
   - other namespaces cannot access the pods
 
   - external access has to be enabled explicitly
-
-- Let's see what this would look like for the DockerCoins app!
-
----
-
-## Network policies for DockerCoins
-
-- We are going to apply two policies
-
-- The first policy will prevent traffic from other namespaces
-
-- The second policy will allow traffic to the `webui` pods
-
-- That's all we need for that app!
-
----
-
-## Blocking traffic from other namespaces
-
-This policy selects all pods in the current namespace.
-
-It allows traffic only from pods in the current namespace.
-
-(An empty `podSelector` means "all pods.")
-
-```yaml
-kind: NetworkPolicy
-apiVersion: networking.k8s.io/v1
-metadata:
-  name: deny-from-other-namespaces
-spec:
-  podSelector: {}
-  ingress:
-  - from:
-    - podSelector: {}
-```
-
----
-
-## Allowing traffic to `webui` pods
-
-This policy selects all pods with label `app=webui`.
-
-It allows traffic from any source.
-
-(An empty `from` field means "all sources.")
-
-```yaml
-kind: NetworkPolicy
-apiVersion: networking.k8s.io/v1
-metadata:
-  name: allow-webui
-spec:
-  podSelector:
-    matchLabels:
-      app: webui
-  ingress:
-  - from: []
-```
-
----
-
-## Applying both network policies
-
-- Both network policies are declared in the file @@LINK[k8s/netpol-dockercoins.yaml]
-
-.lab[
-
-- Apply the network policies:
-  ```bash
-  kubectl apply -f ~/container.training/k8s/netpol-dockercoins.yaml
-  ```
-
-- Check that we can still access the web UI from outside
-  <br/>
-  (and that the app is still working correctly!)
-
-- Check that we can't connect anymore to `rng` or `hasher` through their ClusterIP
-
-]
-
-Note: using `kubectl proxy` or `kubectl port-forward` allows us to connect
-regardless of existing network policies. This allows us to debug and
-troubleshoot easily, without having to poke holes in our firewall.
-
----
-
-## Cleaning up our network policies
-
-- The network policies that we have installed block all traffic to the default namespace
-
-- We should remove them, otherwise further demos and exercises will fail!
-
-.lab[
-
-- Remove all network policies:
-  ```bash
-  kubectl delete networkpolicies --all
-  ```
-
-]
 
 ---
 

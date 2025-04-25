@@ -21,6 +21,8 @@ exclude:
 
 content:
 - shared/title.md
+- shared/toc.md
+- shared/title.md
 - logistics.md
 - containers/intro.md
 #- shared/about-slides.md
@@ -57,41 +59,3 @@ content:
   - shared/yaml.md
   - containers/Compose_For_Dev_Stacks.md
   - containers/Exercise_Composefile.md
-- # DAY 3
-  - containers/Exercise_Composefile.md
-  - containers/dockercoins.md
-- # DAY 4
-  - k8s/concepts-k8s.md
-  #- k8s/kubenet.md
-  - k8s/setup-overview.md
-  - shared/declarative.md
-  - k8s/declarative.md
-  - k8s/kubectlget.md 
-  #- k8s/setup-devel.md
-  #- k8s/setup-managed.md
-  #- k8s/setup-selfhosted.md
-  - k8s/kubectl-run.md
-  #- k8s/batch-jobs.md
-  #- k8s/labels-annotations.md
-  - k8s/kubectl-logs.md
-  - k8s/deploymentslideshow.md
-  - k8s/kubectlexpose.md
-- # DAY 5
-  - k8s/namespaces.md
-  - k8s/shippingimages.md
-  - k8s/buildshiprun-selfhosted.md
-  - k8s/ourapponkube.md
-  - k8s/accessinternal.md
-  - k8s/kubectlproxy.md
-  - k8s/daemonset.md
-  - k8s/rollout.md
-- # DAY 6 & 7
-  - k8s/netpol.md
-  - k8s/netpol-tp.md
-- # DAY 8
-  - k8s/helm-intro.md
-  - k8s/helm-chart-format.md
-  - k8s/helm-values-schema-validation.md
-  - k8s/helm-secrets.md
-  - k8s/kustomize.md
-

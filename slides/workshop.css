@@ -212,6 +212,38 @@ div img {
   display: block;
 }
 
+.lab2 {
+  background-color: #eee;
+  background-image: url("images/keyboard.png");
+  background-size: 1.4em;
+  background-repeat: no-repeat;
+  background-position: 0.2em 0.2em;
+  border: 2px dotted black;
+  font-size: 50%;
+}
+.lab2:before {
+  content: ">";
+  margin-left: 1.8em;
+  margin-top: 0.25em;
+  display: block;
+}
+
+.lab3 {
+  background-color: #eee;
+  background-image: url("images/keyboard.png");
+  background-size: 1.4em;
+  background-repeat: no-repeat;
+  background-position: 0.2em 0.2em;
+  border: 2px dotted black;
+  font-size: 75%;
+}
+.lab3:before {
+  content: ">";
+  margin-left: 1.8em;
+  margin-top: 0.25em;
+  display: block;
+}
+
 li p { line-height: 1.25em; }
 
 div.extra-details {

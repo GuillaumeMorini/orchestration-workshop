@@ -21,6 +21,8 @@ exclude:
 
 content:
 - shared/title.md
+- shared/toc.md
+- shared/title.md
 - logistics.md
 - containers/intro.md
 #- shared/about-slides.md
@@ -76,22 +78,41 @@ content:
   - k8s/kubectl-logs.md
   - k8s/deploymentslideshow.md
   - k8s/kubectlexpose.md
-- # DAY 5
-  - k8s/namespaces.md
-  - k8s/shippingimages.md
-  - k8s/buildshiprun-selfhosted.md
-  - k8s/ourapponkube.md
-  - k8s/accessinternal.md
-  - k8s/kubectlproxy.md
-  - k8s/daemonset.md
-  - k8s/rollout.md
-- # DAY 6 & 7
-  - k8s/netpol.md
-  - k8s/netpol-tp.md
-- # DAY 8
-  - k8s/helm-intro.md
-  - k8s/helm-chart-format.md
-  - k8s/helm-values-schema-validation.md
-  - k8s/helm-secrets.md
-  - k8s/kustomize.md
+  #- k8s/service-types.md
 
+#   - k8s/shippingimages.md
+#   #- k8s/buildshiprun-selfhosted.md
+#   - k8s/buildshiprun-dockerhub.md
+#   - k8s/ourapponkube.md
+#   #- k8s/localkubeconfig.md
+#   #- k8s/access-eks-cluster.md
+#   #- k8s/accessinternal.md
+#   #- k8s/kubectlproxy.md
+# - - k8s/dashboard.md
+#   #- k8s/k9s.md
+#   #- k8s/tilt.md
+#   #- k8s/kubectlscale.md
+#   - k8s/scalingdockercoins.md
+#   - shared/hastyconclusions.md
+#   - k8s/daemonset.md
+#   - k8s/rollout.md
+#   #- k8s/record.md
+# - - k8s/logs-cli.md
+# # Bridget hasn't added EFK yet
+#   #- k8s/logs-centralized.md
+#   - k8s/namespaces.md
+#   - k8s/helm-intro.md
+#   #- k8s/helm-chart-format.md
+#   - k8s/helm-create-basic-chart.md
+#   #- k8s/helm-create-better-chart.md
+#   #- k8s/helm-dependencies.md
+#   #- k8s/helm-values-schema-validation.md
+#   #- k8s/helm-secrets.md
+#   #- k8s/kustomize.md
+#   #- k8s/ytt.md  
+#   #- k8s/netpol.md
+#   - k8s/whatsnext.md
+# #  - k8s/links.md
+# # Bridget-specific
+#   - k8s/links-bridget.md
+#   - shared/thankyou.md
