@@ -49,6 +49,41 @@ _cmd_clean() {
 	done	
 }
 
+_cmd codeserver "Install code-server on the clusters"
+_cmd_codeserver() {
+    TAG=$1
+    need_tag
+
+    ARCH=${ARCHITECTURE-amd64}
+    CODESERVER_VERSION=4.96.4
+    CODESERVER_URL=https://github.com/coder/code-server/releases/download/v${CODESERVER_VERSION}/code-server-${CODESERVER_VERSION}-linux-${ARCH}.tar.gz
+    pssh "
+    set -e
+    i_am_first_node || exit 0
+    if ! [ -x /usr/local/bin/code-server ]; then
+        curl -fsSL $CODESERVER_URL | sudo tar zx -C /opt
+        sudo ln -s /opt/code-server-${CODESERVER_VERSION}-linux-${ARCH}/bin/code-server /usr/local/bin/code-server
+        sudo -u $USER_LOGIN -H code-server --install-extension ms-azuretools.vscode-docker
+        sudo -u $USER_LOGIN -H code-server --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
+        sudo -u $USER_LOGIN -H mkdir -p /home/$USER_LOGIN/.local/share/code-server/User
+        echo '{\"workbench.startupEditor\": \"terminal\"}' | sudo -u $USER_LOGIN tee /home/$USER_LOGIN/.local/share/code-server/User/settings.json
+        sudo -u $USER_LOGIN mkdir -p /home/$USER_LOGIN/.config/systemd/user
+        sudo -u $USER_LOGIN tee /home/$USER_LOGIN/.config/systemd/user/code-server.service <<EOF
+[Unit]
+Description=code-server
+
+[Install]
+WantedBy=default.target
+
+[Service]
+ExecStart=/usr/local/bin/code-server --bind-addr [::]:1789
+Restart=always
+EOF
+        sudo systemctl --user -M $USER_LOGIN@ enable code-server.service --now
+        sudo loginctl enable-linger $USER_LOGIN
+    fi"
+}
+
 _cmd createuser "Create the user that students will use"
 _cmd_createuser() {
     TAG=$1
@@ -262,20 +297,9 @@ _cmd_create() {
         if [ "$CLUSTERSIZE" ]; then
             echo nodes_per_cluster = $CLUSTERSIZE >> terraform.tfvars
         fi
-        for RETRY in 1 2 3; do
-            if terraform apply -auto-approve; then
-                touch terraform.ok
-                break
-            fi
-        done
-        if ! [ -f terraform.ok ]; then
-            die "Terraform failed."
-        fi
     )
 
     sep
-    info "Successfully created $COUNT instances with tag $TAG"
-    echo create_ok > tags/$TAG/status
 
     # If the settings.env file has a "STEPS" field,
     # automatically execute all the actions listed in that field.
@@ -350,9 +374,13 @@ _cmd_clusterize() {
     done < /tmp/cluster
     "
 
-    while read line; do
-        printf '{"login": "%s", "password": "%s", "ipaddrs": "%s"}\n' "$USER_LOGIN" "$USER_PASSWORD" "$line"
-    done < tags/$TAG/clusters.tsv > tags/$TAG/logins.jsonl
+    jq --raw-input --compact-output \
+       --arg USER_LOGIN "$USER_LOGIN" --arg USER_PASSWORD "$USER_PASSWORD" '
+    {
+      "login": $USER_LOGIN,
+      "password": $USER_PASSWORD,
+      "ipaddrs": .
+    }' < tags/$TAG/clusters.tsv > tags/$TAG/logins.jsonl
 
     echo cluster_ok > tags/$TAG/status
 }
@@ -592,7 +620,9 @@ EOF
     # Install weave as the pod network
     pssh "
     if i_am_first_node; then
-        kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s-1.11.yaml
+        curl -fsSL https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s-1.11.yaml |
+        sed s,weaveworks/weave,quay.io/rackspace/weave, |
+        kubectl apply -f-
     fi"
 
     # FIXME this is a gross hack to add the deployment key to our SSH agent,
@@ -948,7 +978,7 @@ _cmd_logins() {
     need_tag $TAG
 
     cat tags/$TAG/logins.jsonl \
-    | jq -r '"\(.password)\tssh -l \(.login)\(if .port then " -p \(.port)" else "" end)\t\(.ipaddrs)"'
+    | jq -r '"\(if .codeServerPort then "\(.codeServerPort)\t" else "" end )\(.password)\tssh -l \(.login)\(if .port then " -p \(.port)" else "" end)\t\(.ipaddrs)"'
 }
 
 _cmd maketag "Generate a quasi-unique tag for a group of instances"
@@ -1090,7 +1120,7 @@ _cmd_tailhist () {
     set -e
     sudo apt-get install unzip -y
     wget -c https://github.com/joewalnes/websocketd/releases/download/v0.3.0/websocketd-0.3.0-linux_$ARCH.zip
-    unzip websocketd-0.3.0-linux_$ARCH.zip websocketd
+    unzip -o websocketd-0.3.0-linux_$ARCH.zip websocketd
     sudo mv websocketd /usr/local/bin/websocketd
     sudo mkdir -p /opt/tailhist
     sudo tee /opt/tailhist.service <<EOF
@@ -1113,14 +1143,35 @@ EOF
     pssh -I sudo tee /opt/tailhist/index.html <lib/tailhist.html
 }
 
+_cmd terraform "Apply Terraform configuration to provision resources."
+_cmd_terraform() {
+    TAG=$1
+    need_tag
+    echo terraforming > tags/$TAG/status
+    (
+        cd tags/$TAG
+        terraform apply -auto-approve
+        # The Terraform provider for Proxmox has a bug; sometimes it fails
+        # to obtain VM address from the QEMU agent. In that case, we put
+        # ERROR in the ips.txt file (instead of the VM IP address). Detect
+        # that so that we run Terraform again (this typically solves the issue).
+        if grep -q ERROR ips.txt; then
+          die "Couldn't obtain IP address of some machines. Try to re-run terraform."
+        fi
+    )
+    echo terraformed > tags/$TAG/status
+
+}
+
 _cmd tools "Install a bunch of useful tools (editors, git, jq...)"
 _cmd_tools() {
     TAG=$1
     need_tag
 
     pssh "
+    set -e
     sudo apt-get -q update
-    sudo apt-get -qy install apache2-utils emacs-nox git httping htop jid joe jq mosh python-setuptools tree unzip
+    sudo apt-get -qy install apache2-utils argon2 emacs-nox git httping htop jid joe jq mosh tree unzip
     # This is for VMs with broken PRNG (symptom: running docker-compose randomly hangs)
     sudo apt-get -qy install haveged
     "
@@ -1260,7 +1311,13 @@ _cmd_passwords() {
     $0 ips "$TAG" | paste "$PASSWORDS_FILE" - | while read password nodes; do
         info "Setting password for $nodes..."
         for node in $nodes; do
-            echo $USER_LOGIN:$password | ssh $SSHOPTS -i tags/$TAG/id_rsa ubuntu@$node sudo chpasswd
+            echo $USER_LOGIN $password | ssh $SSHOPTS -i tags/$TAG/id_rsa ubuntu@$node '
+                read login password
+                echo $login:$password | sudo chpasswd
+                hashedpassword=$(echo -n $password | argon2 saltysalt$RANDOM -e)
+                sudo -u $login mkdir -p /home/$login/.config/code-server
+                echo "hashed-password: \"$hashedpassword\"" | sudo -u $login tee /home/$login/.config/code-server/config.yaml >/dev/null
+                '
         done
     done
     info "Done."
@@ -1292,6 +1349,11 @@ _cmd_wait() {
     pssh -l $SSH_USER "
     if [ -d /var/lib/cloud ]; then
         cloud-init status --wait
+        case $? in
+        0) exit 0;; # all is good
+        2) exit 0;; # recoverable error (happens with proxmox deprecated cloud-init payloads)
+        *) exit 1;; # all other problems
+        esac
     fi"
 }
 
@@ -1334,7 +1396,7 @@ WantedBy=multi-user.target
 
 [Service]
 WorkingDirectory=/opt/webssh
-ExecStart=/usr/bin/env python run.py --fbidhttp=false --port=1080 --policy=reject
+ExecStart=/usr/bin/env python3 run.py --fbidhttp=false --port=1080 --policy=reject
 User=nobody
 Group=nogroup
 Restart=always

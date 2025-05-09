@@ -6,33 +6,44 @@
 # (See https://docs.google.com/document/d/1n0lwp6rQKQUIuo_A5LQ1dgCzrmjkDjmDtNj1Jn92UrI)
 # PRO2-XS = 4 core, 16 gb
 
+set -e
+
 PROVIDER=scaleway
+STUDENTS=30
 
 case "$PROVIDER" in
 linode)
   export TF_VAR_node_size=g6-standard-6
-  export TF_VAR_location=eu-west
+  export TF_VAR_location=us-east
   ;;
 scaleway)
   export TF_VAR_node_size=PRO2-XS
+  # For tiny testing purposes, these are okay too:
+  #export TF_VAR_node_size=PLAY2-NANO
   export TF_VAR_location=fr-par-2
   ;;
 esac
 
-./labctl create --mode mk8s --settings settings/konk.env --provider $PROVIDER --tag konk
-
 # set kubeconfig file
 export KUBECONFIG=~/kubeconfig
-cp tags/konk/stage2/kubeconfig.101 $KUBECONFIG
+
+if [ "$PROVIDER" = "kind" ]; then
+  kind create cluster --name konk
+  ADDRTYPE=InternalIP
+else
+  ./labctl create --mode mk8s --settings settings/konk.env --provider $PROVIDER --tag konk
+  cp tags/konk/stage2/kubeconfig.101 $KUBECONFIG
+  ADDRTYPE=ExternalIP
+fi
 
 # set external_ip labels
-kubectl get nodes -o=jsonpath='{range .items[*]}{.metadata.name} {.status.addresses[?(@.type=="ExternalIP")].address}{"\n"}{end}' |
-while read node address; do
+kubectl get nodes -o=jsonpath='{range .items[*]}{.metadata.name} {.status.addresses[?(@.type=="'$ADDRTYPE'")].address}{"\n"}{end}' |
+while read node address ignoredaddresses; do
   kubectl label node $node external_ip=$address
 done
 
 # vcluster all the things
-./labctl create --settings settings/mk8s.env --provider vcluster --mode mk8s --students 50
+./labctl create --settings settings/mk8s.env --provider vcluster --mode mk8s --students $STUDENTS
 
 # install prometheus stack because that's cool
 helm upgrade --install --repo https://prometheus-community.github.io/helm-charts \
