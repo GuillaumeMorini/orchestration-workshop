@@ -184,28 +184,6 @@ configMapGenerator:
 
 ---
 
-class: extra-details
-
-## Hashicorp go-getter
-
-- Some versions of Kustomize support additional forms for remote resources
-
-- Examples:
-
-  https://releases.hello.io/k/1.0.zip (remote archive)
-
-  https://releases.hello.io/k/1.0.zip//some-subdir (subdirectory in archive)
-
-- This relies on [hashicorp/go-getter](https://github.com/hashicorp/go-getter#url-format)
-
-- ... But it prevents Kustomize inclusion in `kubectl`
-
-- Avoid them!
-
-- See [kustomize#3578](https://github.com/kubernetes-sigs/kustomize/issues/3578) for details
-
----
-
 ## Managing `kustomization.yaml`
 
 - There are many ways to manage `kustomization.yaml` files, including:
@@ -213,8 +191,6 @@ class: extra-details
   - the `kustomize` CLI
 
   - opening the file with our favorite text editor
-
-  - ~~web wizards like [Replicated Ship](https://www.replicated.com/ship/)~~ (deprecated)
 
 - Let's see these in action!
 
@@ -283,33 +259,6 @@ General workflow:
 
 - The `kustomize` tool is still needed if we want to use `create`, `edit`, ...
 
-- Kubernetes 1.14 to 1.20 uses Kustomize 2.0.3
-
-- Kubernetes 1.21 jumps to Kustomize 4.1.2
-
-- Future versions should track Kustomize updates more closely
-
----
-
-class: extra-details
-
-## Differences between 2.0.3 and later
-
-- Kustomize 2.1 / 3.0 deprecates `bases` (they should be listed in `resources`)
-
-  (this means that "modern" `kustomize edit add resource` won't work with "old" `kubectl apply -k`)
-
-- Kustomize 2.1 introduces `replicas` and `envs`
-
-- Kustomize 3.1 introduces multipatches
-
-- Kustomize 3.2 introduce inline patches in `kustomization.yaml`
-
-- Kustomize 3.3 to 3.10 is mostly internal refactoring
-
-- Kustomize 4.0 drops go-getter again
-
-- Kustomize 4.1 allows patching kind and name
 
 ---
 

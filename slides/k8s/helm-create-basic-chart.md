@@ -31,8 +31,7 @@
 
 - Copy the YAML file to the `templates` subdirectory in the chart:
   ```bash
-  cp ~/container.training/k8s/dockercoins.yaml dockercoins/templates
-  ```
+  curl -Lo dockercoins/templates/dockercoins.yaml https://raw.githubusercontent.com/GuillaumeMorini/orchestration-workshop/refs/heads/main/k8s/dockercoins.yaml  ```
 
 ]
 

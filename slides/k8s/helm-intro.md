@@ -82,25 +82,6 @@
 
 ---
 
-## CNCF graduation status
-
-- On April 30th 2020, Helm was the 10th project to *graduate* within the CNCF
-
-  (alongside Containerd, Prometheus, and Kubernetes itself)
-
-- This is an acknowledgement by the CNCF for projects that
-
-  *demonstrate thriving adoption, an open governance process,
-  <br/>
-  and a strong commitment to community, sustainability, and inclusivity.*
-
-- See [CNCF announcement](https://www.cncf.io/announcement/2020/04/30/cloud-native-computing-foundation-announces-helm-graduation/)
-  and [Helm announcement](https://helm.sh/blog/celebrating-helms-cncf-graduation/)
-
-- In other words: Helm is here to stay
-
----
-
 ## Helm concepts
 
 - `helm` is a CLI tool
@@ -161,44 +142,6 @@ or `apt` tools).
 
 ---
 
-## Helm 2 vs Helm 3
-
-- Helm 3 was released [November 13, 2019](https://helm.sh/blog/helm-3-released/)
-
-- Charts remain compatible between Helm 2 and Helm 3
-
-- The CLI is very similar (with minor changes to some commands)
-
-- The main difference is that Helm 2 uses `tiller`, a server-side component
-
-- Helm 3 doesn't use `tiller` at all, making it simpler (yay!)
-
-- If you see references to `tiller` in a tutorial, documentation... that doc is obsolete!
-
----
-
-class: extra-details
-
-## What was the problem with `tiller`?
-
-- With Helm 3:
-
-  - the `helm` CLI communicates directly with the Kubernetes API
-
-  - it creates resources (deployments, services...) with our credentials
-
-- With Helm 2:
-
-  - the `helm` CLI communicates with `tiller`, telling `tiller` what to do
-
-  - `tiller` then communicates with the Kubernetes API, using its own credentials
-
-- This indirect model caused significant permissions headaches
-
-- It also made it more complicated to embed Helm in other tools
-
----
-
 ## Installing Helm
 
 - If the `helm` CLI is not installed in your environment, install it
@@ -217,8 +160,6 @@ class: extra-details
   ```
 
 ]
-
-(To install Helm 2, replace `get-helm-3` with `get`.)
 
 ---
 

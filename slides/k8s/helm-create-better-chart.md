@@ -169,7 +169,7 @@ class: extra-details
 
 - Check the logs of the worker:
   ```bash
-  stern worker
+  kubectl logs -l app=worker
   ```
 
 - Look at the resources that were created:
