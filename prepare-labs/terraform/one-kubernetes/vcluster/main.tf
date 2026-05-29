@@ -4,25 +4,36 @@ resource "helm_release" "_" {
   create_namespace = true
   repository       = "https://charts.loft.sh"
   chart            = "vcluster"
-  version          = "0.19.7"
-  set {
-    name  = "service.type"
-    value = "NodePort"
-  }
-  set {
-    name  = "storage.persistence"
-    value = "false"
-  }
-  set {
-    name  = "sync.nodes.enabled"
-    value = "true"
-  }
-  set {
-    name  = "sync.nodes.syncAllNodes"
-    value = "true"
-  }
-  set {
-    name  = "syncer.extraArgs"
-    value = "{--tls-san=${local.guest_api_server_host}}"
-  }
+  version          = "0.30.4"
+  values = [
+    yamlencode({
+      controlPlane = {
+        proxy = {
+          extraSANs = [ local.guest_api_server_host ]
+        }
+        service = {
+          spec = {
+            type = "NodePort"
+          }
+        }
+        statefulSet = {
+          persistence = {
+            volumeClaim = {
+              enabled = true
+            }
+          }
+        }
+      }
+      sync = {
+        fromHost = {
+          nodes = {
+            enabled = true
+            selector = {
+              all = true
+            }
+          }
+        }
+      }
+    })
+  ]
 }

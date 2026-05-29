@@ -17,16 +17,18 @@ exclude:
 content:
 - shared/title.md
 - logistics.md
-- k8s/intro.md
-- shared/about-slides.md
-#- shared/chat-room-im.md
+- shared/chat-room-im.md
 #- shared/chat-room-slack.md
 #- shared/chat-room-zoom-meeting.md
 #- shared/chat-room-zoom-webinar.md
+- shared/about-slides.md
+- k8s/prereqs-advanced.md
+- shared/handson.md
+- k8s/labs-live.md
+- shared/connecting.md
+- k8s/labs-async.md
 - shared/toc.md
 - #1
-  - k8s/prereqs-advanced.md
-  - shared/handson.md
   - k8s/architecture.md
   - k8s/internal-apis.md
   - k8s/deploymentslideshow.md
@@ -46,6 +48,7 @@ content:
   - k8s/staticpods.md
   - k8s/cluster-upgrade.md
 - #4
+  - k8s/templating.md
   - k8s/kustomize.md
   - k8s/helm-intro.md
   - k8s/helm-chart-format.md
@@ -64,14 +67,18 @@ content:
   - k8s/crd.md
 - #6
   - k8s/ingress-tls.md
-  - k8s/ingress-advanced.md
+  #- k8s/ingress-setup.md
+  #- k8s/ingress-advanced.md
   #- k8s/ingress-canary.md
+  - k8s/gateway-api.md
   - k8s/cert-manager.md
   - k8s/cainjector.md
   - k8s/eck.md
 - #7
   - k8s/admission.md
   - k8s/kyverno.md
+  - k8s/kyverno-colors.md
+  - k8s/kyverno-ingress.md
 - #8
   - k8s/aggregation-layer.md
   - k8s/metrics-server.md

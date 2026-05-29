@@ -20,7 +20,7 @@
 
 <!-- ##VERSION## -->
 
-- Unfortunately, as of Kubernetes 1.32, the CLI cannot create daemon sets
+- Unfortunately, as of Kubernetes 1.36, the CLI cannot create daemon sets
 
 --
 
@@ -103,7 +103,7 @@
 
 - Or, alternatively:
   ```bash
-  sed -i "s/kind: Deployment/kind: DaemonSet"
+  sed -i "s/kind: Deployment/kind: DaemonSet/"
   ```
 
 ]
@@ -133,19 +133,18 @@
 
 - The core of the error is:
   ```
-  error validating data:
-  [ValidationError(DaemonSet.spec):
-  unknown field "replicas" in io.k8s.api.extensions.v1beta1.DaemonSetSpec,
-  ...
+  unknown field "spec.replicas", unknown field "spec.strategy"
   ```
 
 --
 
 - *Obviously,* it doesn't make sense to specify a number of replicas for a daemon set
 
+  (the field `spec.strategy` is also specific to Deployments)
+
 --
 
-- Workaround: fix the YAML and remove the `replicas` field
+- Workaround: fix the YAML and remove these fields
 
 ---
 
@@ -679,8 +678,8 @@ class: extra-details
 
 - Relevant documentation:
 
-  [Service spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#servicespec-v1-core),
-  [LabelSelector spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#labelselector-v1-meta),
+  [Service spec](https://kubernetes.io/docs/reference/kubernetes-api/service-resources/service-v1/#ServiceSpec),
+  [LabelSelector spec](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/label-selector/),
   [label selector doc](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors)
 
 ---

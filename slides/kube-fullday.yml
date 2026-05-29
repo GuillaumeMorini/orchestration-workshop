@@ -18,19 +18,18 @@ exclude:
 content:
 - shared/title.md
 - logistics.md
-- k8s/intro.md
-- shared/about-slides.md
 - shared/chat-room-im.md
 #- shared/chat-room-slack.md
 #- shared/chat-room-zoom-meeting.md
 #- shared/chat-room-zoom-webinar.md
+- shared/about-slides.md
+- k8s/prereqs-basic.md
+- shared/handson.md
+- k8s/labs-live.md
+- shared/connecting.md
+- k8s/labs-async.md
 - shared/toc.md
 -
-  - shared/prereqs.md
-  - shared/handson.md
-  #- shared/webssh.md
-  - shared/connecting.md
-  #- k8s/versions-k8s.md
   - shared/sampleapp.md
   #- shared/composescale.md
   #- shared/hastyconclusions.md
@@ -66,6 +65,8 @@ content:
   - k8s/rollout.md
   - k8s/healthchecks.md
   - k8s/ingress.md
+  #- k8s/ingress-setup.md
+  #- k8s/gateway-api.md
   #- k8s/volumes.md
   - k8s/configuration.md
   - k8s/secrets.md
@@ -85,6 +86,7 @@ content:
   #- k8s/healthchecks-more.md
   #- k8s/record.md
   #- k8s/ingress-tls.md
+  #- k8s/templating.md
   #- k8s/kustomize.md
   #- k8s/helm-intro.md
   #- k8s/helm-chart-format.md

@@ -16,17 +16,19 @@ exclude:
 
 content:
 - shared/title.md
-# - shared/logistics.md
-- containers/intro.md
-- shared/about-slides.md
+#- logistics.md
 #- shared/chat-room-im.md
 #- shared/chat-room-slack.md
 #- shared/chat-room-zoom-meeting.md
 #- shared/chat-room-zoom-webinar.md
+- shared/about-slides.md
+- shared/handson.md
+#- containers/labs-live.md
+#- shared/connecting.md
+- containers/labs-async.md
 - shared/toc.md
 - - containers/Docker_Overview.md
   - containers/Docker_History.md
-  - containers/Training_Environment.md
   - containers/Installing_Docker.md
   - containers/First_Containers.md
   - containers/Background_Containers.md
@@ -40,7 +42,7 @@ content:
 - - containers/Multi_Stage_Builds.md
   - containers/Publishing_To_Docker_Hub.md
   - containers/Dockerfile_Tips.md
-  - containers/Exercise_Dockerfile_Advanced.md
+  - containers/Exercise_Dockerfile_Multistage.md
 - - containers/Naming_And_Inspecting.md
   - containers/Labels.md
   - containers/Getting_Inside.md
@@ -58,13 +60,17 @@ content:
   - containers/Docker_Machine.md
 - - containers/Advanced_Dockerfiles.md
   - containers/Buildkit.md
+  - containers/Exercise_Dockerfile_Buildkit.md
   - containers/Init_Systems.md
   - containers/Application_Configuration.md
   - containers/Logging.md
   - containers/Resource_Limits.md
 - - containers/Namespaces_Cgroups.md
   - containers/Copy_On_Write.md
-  #- containers/Containers_From_Scratch.md
+  - containers/Containers_From_Scratch.md
+  - containers/Security.md
+  - containers/Rootless_Networking.md
+  - containers/Images_Deep_Dive.md
 - - containers/Container_Engines.md
   - containers/Pods_Anatomy.md
   - containers/Ecosystem.md

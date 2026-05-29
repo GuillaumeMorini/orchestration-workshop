@@ -18,19 +18,18 @@ exclude:
 content:
 - shared/title.md
 #- logistics.md
-- k8s/intro.md
-- shared/about-slides.md
 #- shared/chat-room-im.md
 #- shared/chat-room-slack.md
 #- shared/chat-room-zoom-meeting.md
 #- shared/chat-room-zoom-webinar.md
+- shared/about-slides.md
+- k8s/prereqs-basic.md
+- shared/handson.md
+#- k8s/labs-live.md
+#- shared/connecting.md
+- k8s/labs-async.md
 - shared/toc.md
 -
-  - shared/prereqs.md
-  - shared/handson.md
-  #- shared/webssh.md
-  - shared/connecting.md
-  - k8s/versions-k8s.md
   - shared/sampleapp.md
   #- shared/composescale.md
   #- shared/hastyconclusions.md
@@ -63,6 +62,7 @@ content:
   - k8s/setup-devel.md
   - k8s/setup-managed.md
   - k8s/setup-selfhosted.md
+  - k8s/kind.md
   - k8s/dashboard.md
   - k8s/k9s.md
   - k8s/tilt.md
@@ -71,6 +71,7 @@ content:
   - shared/hastyconclusions.md
   - k8s/daemonset.md
   #- k8s/exercise-yaml.md
+  - k8s/taints-and-tolerations.md
 -
   - k8s/rollout.md
   - k8s/healthchecks.md
@@ -83,11 +84,14 @@ content:
   - k8s/kubectlproxy.md
 -
   - k8s/ingress.md
+  - k8s/ingress-setup.md
   - k8s/ingress-advanced.md
   #- k8s/ingress-canary.md
   - k8s/ingress-tls.md
+  - k8s/gateway-api.md
   - k8s/cert-manager.md
   - k8s/cainjector.md
+  - k8s/templating.md
   - k8s/kustomize.md
   - k8s/helm-intro.md
   - k8s/helm-chart-format.md
@@ -99,6 +103,7 @@ content:
   #- k8s/exercise-helm.md
   - k8s/gitlab.md
   - k8s/ytt.md
+  - k8s/harbor.md  
 -
   - k8s/netpol.md
   - k8s/authn-authz.md
@@ -128,6 +133,7 @@ content:
   - k8s/gitworkflows.md
   - k8s/flux.md
   - k8s/argocd.md
+  - k8s/argocd-advanced.md
 -
   - k8s/logs-centralized.md
   - k8s/prometheus.md
@@ -152,6 +158,8 @@ content:
   - k8s/kuik.md
   - k8s/sealed-secrets.md
   - k8s/kyverno.md
+  - k8s/kyverno-colors.md
+  - k8s/kyverno-ingress.md
   - k8s/eck.md
   - k8s/finalizers.md
   - k8s/owners-and-dependents.md

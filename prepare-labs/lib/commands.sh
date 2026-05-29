@@ -56,7 +56,7 @@ _cmd_codeserver() {
 
     ARCH=${ARCHITECTURE-amd64}
     CODESERVER_VERSION=4.96.4
-    CODESERVER_URL=https://github.com/coder/code-server/releases/download/v${CODESERVER_VERSION}/code-server-${CODESERVER_VERSION}-linux-${ARCH}.tar.gz
+    CODESERVER_URL=\$GITHUB/coder/code-server/releases/download/v${CODESERVER_VERSION}/code-server-${CODESERVER_VERSION}-linux-${ARCH}.tar.gz
     pssh "
     set -e
     i_am_first_node || exit 0
@@ -230,7 +230,7 @@ _cmd_create() {
             ;;
         *) die "Invalid mode: $MODE (supported modes: mk8s, pssh)." ;;
     esac
-    
+
     if ! [ -f "$SETTINGS" ]; then
         die "Settings file ($SETTINGS) not found."
     fi
@@ -270,7 +270,27 @@ _cmd_create() {
 
     ln -s ../../$SETTINGS tags/$TAG/settings.env.orig
     cp $SETTINGS tags/$TAG/settings.env
-    . $SETTINGS
+
+    # For Google Cloud, it is necessary to specify which "project" to use.
+    # Unfortunately, the Terraform provider doesn't seem to have a way
+    # to detect which Google Cloud project you want to use; it has to be
+    # specified one way or another. Let's decide that it should be set with
+    # the GOOGLE_PROJECT env var; and if that var is not set, we'll try to
+    # figure it out from gcloud.
+    # (See https://github.com/hashicorp/terraform-provider-google/issues/10907#issuecomment-1015721600)
+    # Since we need that variable to be set each time we'll call Terraform
+    # (e.g. when destroying the environment), let's save it to the settings.env
+    # file.
+    if [ "$PROVIDER" = "googlecloud" ]; then
+        if ! [ "$GOOGLE_PROJECT" ]; then
+            info "PROVIDER=googlecloud but GOOGLE_PROJECT is not set. Detecting it."
+            GOOGLE_PROJECT=$(gcloud config get project)
+            info "GOOGLE_PROJECT will be set to '$GOOGLE_PROJECT'."
+        fi
+        echo "export GOOGLE_PROJECT=$GOOGLE_PROJECT" >> tags/$TAG/settings.env
+    fi
+
+    . tags/$TAG/settings.env
 
     echo $MODE > tags/$TAG/mode
     echo $PROVIDER > tags/$TAG/provider
@@ -355,8 +375,8 @@ _cmd_clusterize() {
     pssh -I < tags/$TAG/clusters.tsv "
     grep -w \$PSSH_HOST | tr '\t' '\n' > /tmp/cluster"
     pssh "
-    echo \$PSSH_HOST > /tmp/ipv4
-    head -n 1 /tmp/cluster | sudo tee /etc/ipv4_of_first_node
+    echo \$PSSH_HOST > /tmp/ip_address
+    head -n 1 /tmp/cluster | sudo tee /etc/ip_address_of_first_node
     echo ${CLUSTERPREFIX}1 | sudo tee /etc/name_of_first_node
     echo HOSTIP=\$PSSH_HOST | sudo tee -a /etc/environment
     NODEINDEX=\$((\$PSSH_NODENUM%$CLUSTERSIZE+1))
@@ -439,7 +459,7 @@ _cmd_docker() {
     set -e
     ### Install docker-compose.
     sudo curl -fsSL -o /usr/local/bin/docker-compose \
-      https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-$COMPOSE_PLATFORM
+      \$GITHUB/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-$COMPOSE_PLATFORM
     sudo chmod +x /usr/local/bin/docker-compose
     docker compose version
 
@@ -447,7 +467,7 @@ _cmd_docker() {
     ##VERSION## https://github.com/docker/machine/releases
     MACHINE_VERSION=v0.16.2
     sudo curl -fsSL -o /usr/local/bin/docker-machine \
-      https://github.com/docker/machine/releases/download/\$MACHINE_VERSION/docker-machine-\$(uname -s)-\$(uname -m)
+      \$GITHUB/docker/machine/releases/download/\$MACHINE_VERSION/docker-machine-\$(uname -s)-\$(uname -m)
     sudo chmod +x /usr/local/bin/docker-machine
     docker-machine version
     "
@@ -459,7 +479,7 @@ _cmd_kubebins() {
     need_tag
 
     if [ "$KUBEVERSION" = "" ]; then
-        KUBEVERSION="$(curl -fsSL https://cdn.dl.k8s.io/release/stable.txt | sed s/^v//)"
+        KUBEVERSION="$(curl -fsSL https://dl.k8s.io/release/stable.txt | sed s/^v//)"
     fi
 
     ##VERSION##
@@ -480,10 +500,10 @@ _cmd_kubebins() {
     set -e
     cd /usr/local/bin
     if ! [ -x etcd ]; then
-        curl -L https://github.com/etcd-io/etcd/releases/download/$ETCD_VERSION/etcd-$ETCD_VERSION-linux-$ARCH.tar.gz \
+        curl -L \$GITHUB/etcd-io/etcd/releases/download/$ETCD_VERSION/etcd-$ETCD_VERSION-linux-$ARCH.tar.gz \
         | sudo tar --strip-components=1 --wildcards -zx '*/etcd' '*/etcdctl'
     fi
-    if ! [ -x hyperkube ]; then
+    if ! [ -x kube-apiserver ]; then
         ##VERSION##
         curl -L https://dl.k8s.io/$K8SBIN_VERSION/kubernetes-server-linux-$ARCH.tar.gz \
         | sudo tar --strip-components=3 -zx \
@@ -492,7 +512,7 @@ _cmd_kubebins() {
     sudo mkdir -p /opt/cni/bin
     cd /opt/cni/bin
     if ! [ -x bridge ]; then
-        curl -L https://github.com/containernetworking/plugins/releases/download/$CNI_VERSION/cni-plugins-linux-$ARCH-$CNI_VERSION.tgz \
+        curl -L \$GITHUB/containernetworking/plugins/releases/download/$CNI_VERSION/cni-plugins-linux-$ARCH-$CNI_VERSION.tgz \
         | sudo tar -zx
     fi
     "
@@ -511,7 +531,7 @@ _cmd_kubepkgs() {
     # minor version, so we need to figure out what minor version we are
     # installing to add the corresponding repo.
     if [ "$KUBEVERSION" = "" ]; then
-        KUBEVERSION="$(curl -fsSL https://cdn.dl.k8s.io/release/stable.txt | sed s/^v//)"
+        KUBEVERSION="$(curl -fsSL https://dl.k8s.io/release/stable.txt | sed s/^v//)"
     fi
     KUBEREPOVERSION="$(echo $KUBEVERSION | cut -d. -f1-2)"
 
@@ -542,6 +562,18 @@ EOF"
     kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl &&
     echo 'alias k=kubecolor' | sudo tee /etc/bash_completion.d/k &&
     echo 'complete -F __start_kubectl k' | sudo tee -a /etc/bash_completion.d/k"
+
+    # Install helm early
+    # (so that we can use it to install e.g. Cilium etc.)
+    ARCH=${ARCHITECTURE-amd64}
+    HELM_VERSION=3.19.1
+    pssh "
+    if [ ! -x /usr/local/bin/helm ]; then
+        curl -fsSL https://get.helm.sh/helm-v${HELM_VERSION}-linux-${ARCH}.tar.gz |
+        sudo tar --strip-components=1 --wildcards -zx -C /usr/local/bin '*/helm'
+        helm completion bash | sudo tee /etc/bash_completion.d/helm
+        helm version
+    fi"
 }
 
 _cmd kubeadm "Setup kubernetes clusters with kubeadm"
@@ -563,24 +595,43 @@ _cmd_kubeadm() {
     pssh -I "sudo tee /etc/containerd/config.toml" < lib/containerd-config.toml
     pssh "sudo systemctl restart containerd"
 
+    # Copy the AdmissionConfiguration file.
+    pssh "sudo mkdir -p /etc/kubernetes"
+    pssh -I "sudo tee /etc/kubernetes/AdmissionConfiguration.yaml" < lib/AdmissionConfiguration.yaml
+
     # Initialize kube control plane
     pssh --timeout 200 "
+    IPV6=\$(ip -json a | jq -r '.[].addr_info[] | select(.scope==\"global\" and .family==\"inet6\") | .local' | head -n1)
+    if [ \"\$IPV6\" ]; then
+      ADVERTISE=\"advertiseAddress: \$IPV6\"
+      SERVICE_SUBNET=\"serviceSubnet: fdff::/112\"
+      touch /tmp/install-cilium-ipv6-only
+      touch /tmp/ipv6-only
+    else
+      ADVERTISE=
+      SERVICE_SUBNET=
+      touch /tmp/install-weave
+    fi
+    echo IPV6=\$IPV6 ADVERTISE=\$ADVERTISE
     if i_am_first_node && [ ! -f /etc/kubernetes/admin.conf ]; then
         kubeadm token generate > /tmp/token &&
         cat >/tmp/kubeadm-config.yaml <<EOF
 kind: InitConfiguration
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta4
 bootstrapTokens:
 - token: \$(cat /tmp/token)
+localAPIEndpoint:
+  \$ADVERTISE
 nodeRegistration:
   ignorePreflightErrors:
   - NumCPU
+  - FileContent--proc-sys-net-ipv6-conf-default-forwarding
   $IGNORE_SYSTEMVERIFICATION
   $IGNORE_SWAP
   $IGNORE_IPTABLES
 ---
 kind: JoinConfiguration
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta4
 discovery:
   bootstrapToken:
     apiServerEndpoint: \$(cat /etc/name_of_first_node):6443
@@ -598,10 +649,21 @@ apiVersion: kubelet.config.k8s.io/v1beta1
 failSwapOn: false
 ---
 kind: ClusterConfiguration
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta4
 apiServer:
   certSANs:
-  - \$(cat /tmp/ipv4)
+  - \$(cat /tmp/ip_address)
+  extraArgs:
+  - name: admission-control-config-file
+    value: /etc/kubernetes/AdmissionConfiguration.yaml
+  extraVolumes:
+  - name: admission-control-config-file
+    hostPath: /etc/kubernetes/AdmissionConfiguration.yaml
+    mountPath: /etc/kubernetes/AdmissionConfiguration.yaml
+    readOnly: true
+    pathType: File  
+networking:
+  \$SERVICE_SUBNET
 $CLUSTER_CONFIGURATION_KUBERNETESVERSION
 EOF
 	sudo kubeadm init --config=/tmp/kubeadm-config.yaml
@@ -620,9 +682,20 @@ EOF
     # Install weave as the pod network
     pssh "
     if i_am_first_node; then
-        curl -fsSL https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s-1.11.yaml |
-        sed s,weaveworks/weave,quay.io/rackspace/weave, |
-        kubectl apply -f-
+        if [ -f /tmp/install-weave ]; then
+            curl -fsSL \$GITHUB/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s-1.11.yaml |
+            sed s,weaveworks/weave,quay.io/rackspace/weave, |
+            kubectl apply -f-
+        fi
+        if [ -f /tmp/install-cilium-ipv6-only ]; then
+            helm upgrade -i cilium cilium --repo https://helm.cilium.io/ \
+            --namespace kube-system \
+            --set cni.chainingMode=portmap \
+            --set ipv6.enabled=true \
+            --set ipv4.enabled=false \
+            --set underlayProtocol=ipv6 \
+            --version 1.18.3
+        fi
     fi"
 
     # FIXME this is a gross hack to add the deployment key to our SSH agent,
@@ -645,13 +718,16 @@ EOF
     fi
 
     # Install metrics server
-    pssh "
+    pssh -I <../k8s/metrics-server.yaml "
     if i_am_first_node; then
-	kubectl apply -f https://raw.githubusercontent.com/jpetazzo/container.training/master/k8s/metrics-server.yaml
+	  kubectl apply -f-
+    fi"
+    # It would be nice to be able to use that helm chart for metrics-server.
+    # Unfortunately, the charts themselves are on github.com and we want to
+    # avoid that due to their lack of IPv6 support.
     #helm upgrade --install metrics-server \
     #     --repo https://kubernetes-sigs.github.io/metrics-server/ metrics-server \
     #     --namespace kube-system --set args={--kubelet-insecure-tls}
-    fi"
 }
 
 _cmd kubetools "Install a bunch of CLI tools for Kubernetes"
@@ -678,7 +754,7 @@ _cmd_kubetools() {
 
     # Install ArgoCD CLI
     ##VERSION## https://github.com/argoproj/argo-cd/releases/latest
-    URL=https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-${ARCH}
+    URL=\$GITHUB/argoproj/argo-cd/releases/latest/download/argocd-linux-${ARCH}
     pssh "
     if [ ! -x /usr/local/bin/argocd ]; then
         sudo curl -o /usr/local/bin/argocd -fsSL $URL
@@ -691,7 +767,7 @@ _cmd_kubetools() {
     ##VERSION## https://github.com/fluxcd/flux2/releases
     FLUX_VERSION=2.3.0
     FILENAME=flux_${FLUX_VERSION}_linux_${ARCH}
-    URL=https://github.com/fluxcd/flux2/releases/download/v$FLUX_VERSION/$FILENAME.tar.gz
+    URL=\$GITHUB/fluxcd/flux2/releases/download/v$FLUX_VERSION/$FILENAME.tar.gz
     pssh "
     if [ ! -x /usr/local/bin/flux ]; then
         curl -fsSL $URL |
@@ -706,7 +782,7 @@ _cmd_kubetools() {
     set -e
     if ! [ -x /usr/local/bin/kctx ]; then
       cd /tmp
-      git clone https://github.com/ahmetb/kubectx
+      git clone \$GITHUB/ahmetb/kubectx
       sudo cp kubectx/kubectx /usr/local/bin/kctx
       sudo cp kubectx/kubens /usr/local/bin/kns
       sudo cp kubectx/completion/*.bash /etc/bash_completion.d
@@ -717,7 +793,7 @@ _cmd_kubetools() {
     set -e
     if ! [ -d /opt/kube-ps1 ]; then
       cd /tmp
-      git clone https://github.com/jonmosco/kube-ps1
+      git clone \$GITHUB/jonmosco/kube-ps1
       sudo mv kube-ps1 /opt/kube-ps1
       sudo -u $USER_LOGIN sed -i s/docker-prompt/kube_ps1/ /home/$USER_LOGIN/.bashrc &&
       sudo -u $USER_LOGIN tee -a /home/$USER_LOGIN/.bashrc <<EOF
@@ -734,7 +810,7 @@ EOF
     ##VERSION## https://github.com/stern/stern/releases
     STERN_VERSION=1.29.0
     FILENAME=stern_${STERN_VERSION}_linux_${ARCH}
-    URL=https://github.com/stern/stern/releases/download/v$STERN_VERSION/$FILENAME.tar.gz
+    URL=\$GITHUB/stern/stern/releases/download/v$STERN_VERSION/$FILENAME.tar.gz
     pssh "
     if [ ! -x /usr/local/bin/stern ]; then
         curl -fsSL $URL |
@@ -745,17 +821,19 @@ EOF
     fi"
 
     # Install helm
+    HELM_VERSION=3.19.1
     pssh "
     if [ ! -x /usr/local/bin/helm ]; then
-        curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get-helm-3 | sudo bash &&
+        curl -fsSL https://get.helm.sh/helm-v${HELM_VERSION}-linux-${ARCH}.tar.gz |
+        sudo tar --strip-components=1 --wildcards -zx -C /usr/local/bin '*/helm'
         helm completion bash | sudo tee /etc/bash_completion.d/helm
         helm version
     fi"
 
     # Install kustomize
     ##VERSION## https://github.com/kubernetes-sigs/kustomize/releases
-    KUSTOMIZE_VERSION=v5.4.1
-    URL=https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_${ARCH}.tar.gz
+    KUSTOMIZE_VERSION=v5.8.1
+    URL=\$GITHUB/kubernetes-sigs/kustomize/releases/download/kustomize/${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_${ARCH}.tar.gz
     pssh "
     if [ ! -x /usr/local/bin/kustomize ]; then
         curl -fsSL $URL |
@@ -772,15 +850,17 @@ EOF
     pssh "
     if [ ! -x /usr/local/bin/ship ]; then
         ##VERSION##
-        curl -fsSL https://github.com/replicatedhq/ship/releases/download/v0.51.3/ship_0.51.3_linux_$ARCH.tar.gz |
+        curl -fsSL \$GITHUB/replicatedhq/ship/releases/download/v0.51.3/ship_0.51.3_linux_$ARCH.tar.gz |
             sudo tar -C /usr/local/bin -zx ship
     fi"
 
     # Install the AWS IAM authenticator
+    AWSIAMAUTH_VERSION=0.7.8
+    URL=\$GITHUB/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWSIAMAUTH_VERSION}/aws-iam-authenticator_${AWSIAMAUTH_VERSION}_linux_${ARCH}
     pssh "
     if [ ! -x /usr/local/bin/aws-iam-authenticator ]; then
         ##VERSION##
-        sudo curl -fsSLo /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/linux/$ARCH/aws-iam-authenticator
+        sudo curl -fsSLo /usr/local/bin/aws-iam-authenticator $URL
 	      sudo chmod +x /usr/local/bin/aws-iam-authenticator
         aws-iam-authenticator version
     fi"
@@ -790,17 +870,17 @@ EOF
     if [ ! -x /usr/local/bin/jless ]; then
         ##VERSION##
         sudo apt-get install -y libxcb-render0 libxcb-shape0 libxcb-xfixes0
-        wget https://github.com/PaulJuliusMartinez/jless/releases/download/v0.9.0/jless-v0.9.0-x86_64-unknown-linux-gnu.zip
+        wget \$GITHUB/PaulJuliusMartinez/jless/releases/download/v0.9.0/jless-v0.9.0-x86_64-unknown-linux-gnu.zip
         unzip jless-v0.9.0-x86_64-unknown-linux-gnu
         sudo mv jless /usr/local/bin
     fi"
 
     # Install the krew package manager
     pssh "
-    if [ ! -d /home/$USER_LOGIN/.krew ]; then
+    if [ ! -d /home/$USER_LOGIN/.krew ] && [ ! -f /tmp/ipv6-only ]; then
         cd /tmp &&
         KREW=krew-linux_$ARCH
-        curl -fsSL https://github.com/kubernetes-sigs/krew/releases/latest/download/\$KREW.tar.gz |
+        curl -fsSL \$GITHUB/kubernetes-sigs/krew/releases/latest/download/\$KREW.tar.gz |
         tar -zxf- &&
         sudo -u $USER_LOGIN -H ./\$KREW install krew &&
         echo export PATH=/home/$USER_LOGIN/.krew/bin:\\\$PATH | sudo -u $USER_LOGIN tee -a /home/$USER_LOGIN/.bashrc
@@ -808,7 +888,7 @@ EOF
 
     # Install kubecolor
     KUBECOLOR_VERSION=0.4.0
-    URL=https://github.com/kubecolor/kubecolor/releases/download/v${KUBECOLOR_VERSION}/kubecolor_${KUBECOLOR_VERSION}_linux_${ARCH}.tar.gz
+    URL=\$GITHUB/kubecolor/kubecolor/releases/download/v${KUBECOLOR_VERSION}/kubecolor_${KUBECOLOR_VERSION}_linux_${ARCH}.tar.gz
     pssh "
     if [ ! -x /usr/local/bin/kubecolor ]; then
         ##VERSION##
@@ -820,7 +900,7 @@ EOF
     pssh "
     if [ ! -x /usr/local/bin/k9s ]; then
         FILENAME=k9s_Linux_$ARCH.tar.gz &&
-        curl -fsSL https://github.com/derailed/k9s/releases/latest/download/\$FILENAME |
+        curl -fsSL \$GITHUB/derailed/k9s/releases/latest/download/\$FILENAME |
         sudo tar -C /usr/local/bin -zx k9s
         k9s version
     fi"
@@ -829,7 +909,7 @@ EOF
     pssh "
     if [ ! -x /usr/local/bin/popeye ]; then
         FILENAME=popeye_Linux_$ARCH.tar.gz &&
-        curl -fsSL https://github.com/derailed/popeye/releases/latest/download/\$FILENAME |
+        curl -fsSL \$GITHUB/derailed/popeye/releases/latest/download/\$FILENAME |
         sudo tar -C /usr/local/bin -zx popeye
         popeye version
     fi"
@@ -842,7 +922,7 @@ EOF
     if [ ! -x /usr/local/bin/tilt ]; then
         TILT_VERSION=0.33.13
         FILENAME=tilt.\$TILT_VERSION.linux.$TILT_ARCH.tar.gz
-        curl -fsSL https://github.com/tilt-dev/tilt/releases/download/v\$TILT_VERSION/\$FILENAME |
+        curl -fsSL \$GITHUB/tilt-dev/tilt/releases/download/v\$TILT_VERSION/\$FILENAME |
         sudo tar -C /usr/local/bin -zx tilt
         tilt completion bash | sudo tee /etc/bash_completion.d/tilt
         tilt version
@@ -860,7 +940,7 @@ EOF
     # Install Kompose
     pssh "
     if [ ! -x /usr/local/bin/kompose ]; then
-        curl -fsSLo kompose https://github.com/kubernetes/kompose/releases/latest/download/kompose-linux-$ARCH &&
+        curl -fsSLo kompose \$GITHUB/kubernetes/kompose/releases/latest/download/kompose-linux-$ARCH &&
         sudo install kompose /usr/local/bin
         kompose completion bash | sudo tee /etc/bash_completion.d/kompose
         kompose version
@@ -869,7 +949,7 @@ EOF
     # Install KinD
     pssh "
     if [ ! -x /usr/local/bin/kind ]; then
-        curl -fsSLo kind https://github.com/kubernetes-sigs/kind/releases/latest/download/kind-linux-$ARCH &&
+        curl -fsSLo kind \$GITHUB/kubernetes-sigs/kind/releases/latest/download/kind-linux-$ARCH &&
         sudo install kind /usr/local/bin
         kind completion bash | sudo tee /etc/bash_completion.d/kind
         kind version
@@ -878,7 +958,7 @@ EOF
     # Install YTT
     pssh "
     if [ ! -x /usr/local/bin/ytt ]; then
-        curl -fsSLo ytt https://github.com/vmware-tanzu/carvel-ytt/releases/latest/download/ytt-linux-$ARCH &&
+        curl -fsSLo ytt \$GITHUB/vmware-tanzu/carvel-ytt/releases/latest/download/ytt-linux-$ARCH &&
         sudo install ytt /usr/local/bin
         ytt completion bash | sudo tee /etc/bash_completion.d/ytt
         ytt version
@@ -886,7 +966,7 @@ EOF
 
     ##VERSION## https://github.com/bitnami-labs/sealed-secrets/releases
     KUBESEAL_VERSION=0.26.2
-    URL=https://github.com/bitnami-labs/sealed-secrets/releases/download/v${KUBESEAL_VERSION}/kubeseal-${KUBESEAL_VERSION}-linux-${ARCH}.tar.gz
+    URL=\$GITHUB/bitnami-labs/sealed-secrets/releases/download/v${KUBESEAL_VERSION}/kubeseal-${KUBESEAL_VERSION}-linux-${ARCH}.tar.gz
     #case $ARCH in
     #amd64) FILENAME=kubeseal-linux-amd64;;
     #arm64) FILENAME=kubeseal-arm64;;
@@ -903,7 +983,7 @@ EOF
     VELERO_VERSION=1.13.2
     pssh "
     if [ ! -x /usr/local/bin/velero ]; then
-        curl -fsSL https://github.com/vmware-tanzu/velero/releases/download/v$VELERO_VERSION/velero-v$VELERO_VERSION-linux-$ARCH.tar.gz |
+        curl -fsSL \$GITHUB/vmware-tanzu/velero/releases/download/v$VELERO_VERSION/velero-v$VELERO_VERSION-linux-$ARCH.tar.gz |
         sudo tar --strip-components=1 --wildcards -zx -C /usr/local/bin '*/velero'
         velero completion bash | sudo tee /etc/bash_completion.d/velero
         velero version --client-only
@@ -913,7 +993,7 @@ EOF
     KUBENT_VERSION=0.7.2
     pssh "
     if [ ! -x /usr/local/bin/kubent ]; then
-        curl -fsSL https://github.com/doitintl/kube-no-trouble/releases/download/${KUBENT_VERSION}/kubent-${KUBENT_VERSION}-linux-$ARCH.tar.gz |
+        curl -fsSL \$GITHUB/doitintl/kube-no-trouble/releases/download/${KUBENT_VERSION}/kubent-${KUBENT_VERSION}-linux-$ARCH.tar.gz |
         sudo tar -zxvf- -C /usr/local/bin kubent
         kubent --version
     fi"
@@ -921,7 +1001,7 @@ EOF
     # Ngrok. Note that unfortunately, this is the x86_64 binary.
     # We might have to rethink how to handle this for multi-arch environments.
     pssh "
-    if [ ! -x /usr/local/bin/ngrok ]; then
+    if [ ! -x /usr/local/bin/ngrok ] && [ ! -f /tmp/ipv6-only ]; then
         curl -fsSL https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz |
         sudo tar -zxvf- -C /usr/local/bin ngrok
     fi"
@@ -1020,7 +1100,9 @@ _cmd_ping() {
     TAG=$1
     need_tag
 
-    fping < tags/$TAG/ips.txt
+    # If we connect to our VMs over IPv6, the IP address is between brackets.
+    # Unfortunately, fping doesn't support that; so let's strip brackets here.
+    tr -d [] < tags/$TAG/ips.txt | fping
 }
 
 _cmd stage2 "Finalize the setup of managed Kubernetes clusters"
@@ -1092,7 +1174,7 @@ _cmd_standardize() {
         sudo netfilter-persistent start
     fi"
 
-    # oracle-cloud-agent upgrades pacakges in the background.
+    # oracle-cloud-agent upgrades packages in the background.
     # This breaks our deployment scripts, because when we invoke apt-get, it complains
     # that the lock already exists (symptom: random "Exited with error code 100").
     # Workaround: if we detect oracle-cloud-agent, remove it.
@@ -1104,6 +1186,15 @@ _cmd_standardize() {
         sudo snap remove oracle-cloud-agent
         sudo dpkg --remove --force-remove-reinstreq unified-monitoring-agent
     fi"
+
+    # Check if a cachttps instance is available.
+    # (This is used to access GitHub on IPv6-only hosts.)
+    pssh "
+    if curl -fsSLI http://cachttps.internal:3131/https://github.com/ >/dev/null; then
+        echo GITHUB=http://cachttps.internal:3131/https://github.com
+    else
+        echo GITHUB=https://github.com
+    fi | sudo tee -a /etc/environment"
 }
 
 _cmd tailhist "Install history viewer on port 1088"
@@ -1119,7 +1210,7 @@ _cmd_tailhist () {
     pssh "
     set -e
     sudo apt-get install unzip -y
-    wget -c https://github.com/joewalnes/websocketd/releases/download/v0.3.0/websocketd-0.3.0-linux_$ARCH.zip
+    wget -c \$GITHUB/joewalnes/websocketd/releases/download/v0.3.0/websocketd-0.3.0-linux_$ARCH.zip
     unzip -o websocketd-0.3.0-linux_$ARCH.zip websocketd
     sudo mv websocketd /usr/local/bin/websocketd
     sudo mkdir -p /opt/tailhist
@@ -1171,7 +1262,7 @@ _cmd_tools() {
     pssh "
     set -e
     sudo apt-get -q update
-    sudo apt-get -qy install apache2-utils argon2 emacs-nox git httping htop jid joe jq mosh tree unzip
+    sudo apt-get -qy install apache2-utils argon2 emacs-nox git gron httping htop jid joe jq mosh tree unzip
     # This is for VMs with broken PRNG (symptom: running docker-compose randomly hangs)
     sudo apt-get -qy install haveged
     "
@@ -1218,14 +1309,17 @@ fi
     "
 }
 
-_cmd ssh "Open an SSH session to the first node of a tag"
+_cmd ssh "Open an SSH session to a node (first one by default)"
 _cmd_ssh() {
     TAG=$1
     need_tag
-    IP=$(head -1 tags/$TAG/ips.txt)
-    info "Logging into $IP (default password: $USER_PASSWORD)"
-    ssh $SSHOPTS $USER_LOGIN@$IP
-
+    if [ "$2" ]; then
+        ssh -l ubuntu -i tags/$TAG/id_rsa $2
+    else
+        IP=$(head -1 tags/$TAG/ips.txt)
+        info "Logging into $IP (default password: $USER_PASSWORD)"
+        ssh $SSHOPTS $USER_LOGIN@$IP
+    fi
 }
 
 _cmd tags "List groups of VMs known locally"
@@ -1382,7 +1476,7 @@ _cmd_webssh() {
     sudo apt-get install python3-tornado python3-paramiko -y"
     pssh "
     cd /opt
-    [ -d webssh ] || sudo git clone https://github.com/jpetazzo/webssh"
+    [ -d webssh ] || sudo git clone \$GITHUB/jpetazzo/webssh"
     pssh "
     for KEYFILE in /etc/ssh/*.pub; do
       read a b c < \$KEYFILE; echo localhost \$a \$b
@@ -1467,7 +1561,7 @@ test_vm() {
         "whoami" \
         "hostname -i" \
         "ls -l /usr/local/bin/i_am_first_node" \
-        "grep . /etc/name_of_first_node /etc/ipv4_of_first_node" \
+        "grep . /etc/name_of_first_node /etc/ip_addres_of_first_node" \
         "cat /etc/hosts" \
         "hostnamectl status" \
         "docker version | grep Version -B1" \

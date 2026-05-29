@@ -1,44 +1,77 @@
 # Policy Management with Kyverno
 
-- The Kubernetes permission management system is very flexible ...
+- Kyverno is a policy engine for Kubernetes
 
-- ... But it can't express *everything!*
+- It has many use cases, including:
 
-- Examples:
+  - enforcing or giving warnings about best practices or misconfigurations
+    <br/>(e.g. `:latest` images, healthchecks, requests and limits...)
 
-  - forbid using `:latest` image tag
+  - tightening security
+    <br/>(possibly for multitenant clusters)
 
-  - enforce that each Deployment, Service, etc. has an `owner` label
-    <br/>(except in e.g. `kube-system`)
+  - preventing some modifications
+    <br/>(e.g. restricting modifications to some fields, labels...)
 
-  - enforce that each container has at least a `readinessProbe` healthcheck
-
-- How can we address that, and express these more complex *policies?*
-
----
-
-## Admission control
-
-- The Kubernetes API server provides a generic mechanism called *admission control*
-
-- Admission controllers will examine each write request, and can:
-
-  - approve/deny it (for *validating* admission controllers)
-
-  - additionally *update* the object (for *mutating* admission controllers)
-
-- These admission controllers can be:
-
-  - plug-ins built into the Kubernetes API server
-    <br/>(selectively enabled/disabled by e.g. command-line flags)
-
-  - webhooks registered dynamically with the Kubernetes API server
+  - modifying, generating, cleaning up resources automatically
 
 ---
 
-## What's Kyverno?
+## Examples (validation)
 
-- Policy management solution for Kubernetes
+- [Disallow `:latest` tag](https://kyverno.io/policies/best-practices/disallow-latest-tag/disallow-latest-tag/)
+
+- [Disallow secrets in environment variables](https://kyverno.io/policies/other/disallow-secrets-from-env-vars/disallow-secrets-from-env-vars/)
+
+- [Require that containers drop all capabilities](https://kyverno.io/policies/best-practices/require-drop-all/require-drop-all/)
+
+- [Prevent creation of Deployment, ReplicaSet, etc. without an HPA](https://kyverno.io/policies/other/check-hpa-exists/check-hpa-exists/)
+
+- [Forbid CPU limits](https://kyverno.io/policies/other/forbid-cpu-limits/forbid-cpu-limits/)
+
+- [Check that memory requests are equal to limits](https://kyverno.io/policies/other/memory-requests-equal-limits/memory-requests-equal-limits/)
+
+- [Require containers to have healthchecks](https://kyverno.io/policies/best-practices/require-probes/require-probes/)
+
+---
+
+## Examples (mutation)
+
+- [Automatically add environment variables from a ConfigMap](https://kyverno.io/policies/other/add-env-vars-from-cm/add-env-vars-from-cm/)
+
+- [Add image as an environment variable](https://kyverno.io/policies/other/add-image-as-env-var/add-image-as-env-var/)
+
+- [Add image `LABEL` as an environment variable](https://kyverno.io/policies/other/inject-env-var-from-image-label/inject-env-var-from-image-label/)
+
+- [When creating a Deployment, copy some labels from its Namespace](https://kyverno.io/policies/other/copy-namespace-labels/copy-namespace-labels/)
+
+- [Automatically restart a given Deployment when a given ConfigMap changes](https://kyverno.io/policies/other/restart-deployment-on-secret-change/restart-deployment-on-secret-change/)
+
+---
+
+## Examples (generation)
+
+- [Automatically create a PDB when a Deployment is created](https://kyverno.io/policies/other/create-default-pdb/create-default-pdb/)
+
+- [Create an event when an object is deleted (for auditing purposes)](https://kyverno.io/policies/other/audit-event-on-delete/audit-event-on-delete/)
+
+- [Create an audit event when using `kubectl exec`](https://kyverno.io/policies/other/audit-event-on-exec/audit-event-on-exec/)
+
+- [Automatically create a Secret (e.g. for registry auth) when a Namespace is created](https://kyverno.io/policies/other/sync-secrets/sync-secrets/)
+
+---
+
+## Examples (advanced validation)
+
+- [Only allow root user in images coming from a trusted registry](https://kyverno.io/policies/other/only-trustworthy-registries-set-root/only-trustworthy-registries-set-root/)
+
+- [Prevent images that haven't been checked by a vulnerability scanner](https://kyverno.io/policies/other/require-vulnerability-scan/require-vulnerability-scan/)
+
+- [Prevent ingress with the same host and path](https://kyverno.io/policies/other/unique-ingress-host-and-path/unique-ingress-host-and-path/)
+
+---
+
+## More about Kyverno
 
 - Open source (https://github.com/kyverno/kyverno/)
 
@@ -54,49 +87,21 @@
 
 ---
 
-## What can Kyverno do?
-
-- *Validate* resource manifests
-
-  (accept/deny depending on whether they conform to our policies)
-
-- *Mutate* resources when they get created or updated
-
-  (to add/remove/change fields on the fly)
-
-- *Generate* additional resources when a resource gets created
-
-  (e.g. when namespace is created, automatically add quotas and limits)
-
-- *Audit* existing resources
-
-  (warn about resources that violate certain policies)
-
----
-
-## How does it do it?
+## How does it work?
 
 - Kyverno is implemented as a *controller* or *operator*
 
 - It typically runs as a Deployment on our cluster
 
-- Policies are defined as *custom resource definitions*
+- Policies are defined as *custom resources*
 
 - They are implemented with a set of *dynamic admission control webhooks*
-
---
-
-🤔
-
---
-
-- Let's unpack that!
 
 ---
 
 ## Custom resource definitions
 
-- When we install Kyverno, it will register new resource types:
+- When we install Kyverno, it will register new resource types, including:
 
   - Policy and ClusterPolicy (per-namespace and cluster-scope policies)
 
@@ -112,46 +117,11 @@
 
 ---
 
-## Dynamic admission control webhooks
-
-- When we install Kyverno, it will register a few webhooks for its use
-
-  (by creating ValidatingWebhookConfiguration and MutatingWebhookConfiguration resources)
-
-- All subsequent resource modifications are submitted to these webhooks
-
-  (creations, updates, deletions)
-
----
-
-## Controller
-
-- When we install Kyverno, it creates a Deployment (and therefore, a Pod)
-
-- That Pod runs the server used by the webhooks
-
-- It also runs a controller that will:
-
-  - run checks in the background (and generate PolicyReport objects)
-
-  - process GenerateRequest objects asynchronously
-
----
-
-## Kyverno in action
-
-- We're going to install Kyverno on our cluster
-
-- Then, we will use it to implement a few policies
-
----
-
 ## Installing Kyverno
 
 The recommended [installation method][install-kyverno] is to use Helm charts.
 
 (It's also possible to install with a single YAML manifest.)
-
 
 .lab[
 
@@ -171,9 +141,9 @@ The recommended [installation method][install-kyverno] is to use Helm charts.
 
 - Which resources does it *select?*
 
-  - can specify resources to *match* and/or *exclude*
+  - *match* and/or *exclude* resources
 
-  - can specify *kinds* and/or *selector* and/or users/roles doing the action
+  - match by *kind*, *selector*, *namespace selector*, user/roles doing the action...
 
 - Which operation should be done?
 
@@ -185,319 +155,169 @@ The recommended [installation method][install-kyverno] is to use Helm charts.
 
 ---
 
-## Painting pods
+## Validating objects
 
-- As an example, we'll implement a policy regarding "Pod color"
+Example: [require resource requests and limits][kyverno-requests-limits].
 
-- The color of a Pod is the value of the label `color`
-
-- Example: `kubectl label pod hello color=yellow` to paint a Pod in yellow
-
-- We want to implement the following policies:
-
-  - color is optional (i.e. the label is not required)
-
-  - if color is set, it *must* be `red`, `green`, or `blue`
-
-  - once the color has been set, it cannot be changed
-
-  - once the color has been set, it cannot be removed
-
----
-
-## Immutable primary colors, take 1
-
-- First, we will add a policy to block forbidden colors
-
-  (i.e. only allow `red`, `green`, or `blue`)
-
-- One possible approach:
-
-  - *match* all pods that have a `color` label that is not `red`, `green`, or `blue`
-
-  - *deny* these pods
-
-- We could also *match* all pods, then *deny* with a condition
-
----
-
-.small[
 ```yaml
-@@INCLUDE[k8s/kyverno-pod-color-1.yaml]
+validate:
+  message: "CPU and memory resource requests and memory limits are required."
+  pattern:
+    spec:
+      containers:
+      - resources:
+          requests:
+            memory: "?*"
+            cpu: "?*"
+          limits:
+            memory: "?*"
 ```
-]
+
+(The full policy also has sections for `initContainers` and `ephemeralContainers`.)
+
+[kyverno-requests-limits]: https://kyverno.io/policies/best-practices/require-pod-requests-limits/require-pod-requests-limits/
 
 ---
 
-## Testing without the policy
+## Optional fields
 
-- First, let's create a pod with an "invalid" label
+Example: [disallow `NodePort` Services][kyverno-disallow-nodeports].
 
-  (while we still can!)
-
-- We will use this later
-
-.lab[
-
-- Create a pod:
-  ```bash
-  kubectl run test-color-0 --image=nginx
-  ```
-
-- Apply a color label:
-  ```bash
-  kubectl label pod test-color-0 color=purple
-  ```
-
-]
-
----
-
-## Load and try the policy
-
-.lab[
-
-- Load the policy:
-  ```bash
-  kubectl apply -f ~/container.training/k8s/kyverno-pod-color-1.yaml
-  ```
-
-- Create a pod:
-  ```bash
-  kubectl run test-color-1 --image=nginx
-  ```
-
-- Try to apply a few color labels:
-  ```bash
-  kubectl label pod test-color-1 color=purple
-  kubectl label pod test-color-1 color=red
-  kubectl label pod test-color-1 color-
-  ```
-
-]
-
----
-
-## Immutable primary colors, take 2
-
-- Next rule: once a `color` label has been added, it cannot be changed
-
-  (i.e. if `color=red`, we can't change it to `color=blue`)
-
-- Our approach:
-
-  - *match* all pods
-
-  - add a *precondition* matching pods that have a `color` label
-    <br/>
-    (both in their "before" and "after" states)
-
-  - *deny* these pods if their `color` label has changed
-
-- Again, other approaches are possible!
-
----
-
-.small[
 ```yaml
-@@INCLUDE[k8s/kyverno-pod-color-2.yaml]
+validate:
+  message: "Services of type NodePort are not allowed."
+  pattern:
+    spec:
+      =(type): "!NodePort"
 ```
-]
+
+`=(...):` means that the field is optional.
+
+`type: "!NodePort"` would *require* the field to exist, but be different from `NodePort`.
+
+[kyverno-disallow-nodeports]: https://kyverno.io/policies/best-practices/restrict-node-port/restrict-node-port/
 
 ---
 
-## Comparing "old" and "new"
+## `spec.rules.validate.failureAction`
 
-- The fields of the webhook payload are available through `{{ request }}`
+- By default, this is set to `Audit`
 
-- For UPDATE requests, we can access:
+- This means that rule violations are not enforced
 
-  `{{ request.oldObject }}` → the object as it is right now (before the request)
+- They still generate a warning (at the API level) and a PolicyReport
 
-  `{{ request.object }}` → the object with the changes made by the request
+  (more on that later)
 
----
-
-## Missing labels
-
-- We can access the `color` label through `{{ request.object.metadata.labels.color }}`
-
-- If we reference a label (or any field) that doesn't exist, the policy fails
-
-  (with an error similar to `JMESPAth query failed: Unknown key ... in path`)
-
-- To work around that, [use an OR expression][non-existence-checks]:
-
-  `{{ requests.object.metadata.labels.color || '' }}`
-
-- Note that in older versions of Kyverno, this wasn't always necessary
-
-  (e.g. in *preconditions*, a missing label would evalute to an empty string)
-
-[non-existence-checks]: https://kyverno.io/docs/writing-policies/jmespath/#non-existence-checks
+- We (very often) need to change the `failureAction` to `Enforce`
 
 ---
 
-## Load and try the policy
+## `background`, `admission`, `emitWarning`
 
-.lab[
+- Policies have three boolean flags to control what they do and when
 
-- Load the policy:
-  ```bash
-  kubectl apply -f ~/container.training/k8s/kyverno-pod-color-2.yaml
-  ```
+- `admission` = run that policy at admission
 
-- Create a pod:
-  ```bash
-  kubectl run test-color-2 --image=nginx
-  ```
+  (when an object gets created/updated and validation controllers get invoked)
 
-- Try to apply a few color labels:
-  ```bash
-  kubectl label pod test-color-2 color=purple
-  kubectl label pod test-color-2 color=red
-  kubectl label pod test-color-2 color=blue --overwrite
-  ```
+- `background` = run that policy in the background
 
-]
+  (periodically check if existing objects fit the policy)
 
----
+- `emitWarning` = generate an `Event` of type `Warning` associated to the validated objct
 
-## `background`
-
-- What is this `background: false` option, and why do we need it?
-
---
-
-- Admission controllers are only invoked when we change an object
-
-- Existing objects are not affected
-
-  (e.g. if we have a pod with `color=pink` *before* installing our policy)
-
-- Kyvero can also run checks in the background, and report violations
-
-  (we'll see later how they are reported)
-
-- `background: false` disables that
-
---
-
-- Alright, but ... *why* do we need it?
-
----
-
-## Accessing `AdmissionRequest` context
-
-- In this specific policy, we want to prevent an *update*
-
-  (as opposed to a mere *create* operation)
-
-- We want to compare the *old* and *new* version
-
-  (to check if a specific label was removed)
-
-- The `AdmissionRequest` object has `object` and `oldObject` fields
-
-  (the `AdmissionRequest` object is the thing that gets submitted to the webhook)
-
-- We access the `AdmissionRequest` object through `{{ request }}`
-
---
-
-- Alright, but ... what's the link with `background: false`?
-
----
-
-## `{{ request }}`
-
-- The `{{ request }}` context is only available when there is an `AdmissionRequest`
-
-- When a resource is "at rest", there is no `{{ request }}` (and no old/new)
-
-- Therefore, a policy that uses `{{ request }}` cannot validate existing objects
-
-  (it can only be used when an object is actually created/updated/deleted)
-
----
-
-## Immutable primary colors, take 3
-
-- Last rule: once a `color` label has been added, it cannot be removed
-
-- Our approach is to match all pods that:
-
-  - *had* a `color` label (in `request.oldObject`)
-
-  - *don't have* a `color` label (in `request.Object`)
-
-- And *deny* these pods
-
-- Again, other approaches are possible!
-
----
-
-.small[
-```yaml
-@@INCLUDE[k8s/kyverno-pod-color-3.yaml]
-```
-]
-
----
-
-## Load and try the policy
-
-.lab[
-
-- Load the policy:
-  ```bash
-  kubectl apply -f ~/container.training/k8s/kyverno-pod-color-3.yaml
-  ```
-
-- Create a pod:
-  ```bash
-  kubectl run test-color-3 --image=nginx
-  ```
-
-- Try to apply a few color labels:
-  ```bash
-  kubectl label pod test-color-3 color=purple
-  kubectl label pod test-color-3 color=red
-  kubectl label pod test-color-3 color-
-  ```
-
-]
+  (visible with e.g. `kubectl describe` on that object)
 
 ---
 
 ## Background checks
 
-- What about the `test-color-0` pod that we create initially?
+- Admission controllers are only invoked when we change an object
 
-  (remember: we did set `color=purple`)
+- Existing objects are not affected
 
-- We can see the infringing Pod in a PolicyReport
+  (e.g. if we create "invalid" objects *before* installing the policy)
 
-.lab[
+- Kyvero can also run checks in the background, and report violations
 
-- Check that the pod still an "invalid" color:
-  ```bash
-  kubectl get pods -L color
-  ```
+  (we'll see later how they are reported)
 
-- List PolicyReports:
-  ```bash
-  kubectl get policyreports
-  kubectl get polr
-  ```
+- `background: true/false` controls that
 
-]
+---
 
-(Sometimes it takes a little while for the infringement to show up, though.)
+## Loops
+
+Example: [require image tags][kyverno-disallow-latest].
+
+This uses `request`, which gives access to the `AdmissionRequest` payload.
+
+`request` has an `object` field containing the object that we're validating.
+
+```yaml
+validate:
+  message: "An image tag is required."
+  foreach:
+    - list: "request.object.spec.containers"
+      pattern:
+        image: "*:*"
+```
+
+Note: again, there should also be an entry for `initContainers` and `ephemeralContainers`.
+
+[kyverno-disallow-latest]: https://kyverno.io/policies/best-practices/disallow-latest-tag/disallow-latest-tag/
+
+---
+
+class: extra-details
+
+## ...Or not to loop
+
+Requiring image tags can also be achieved like this:
+
+```yaml
+validate:
+  message: "An image tag is required."
+  pattern:
+    spec:
+      containers:
+      - image: "*:*"
+      =(initContainers):
+      - image: "*:*"
+      =(ephemeralContainers):
+      - image: "*:*"
+```
+
+---
+
+## `request` and other variables
+
+- `request` gives us access to the `AdmissionRequest` payload
+
+- This gives us access to a bunch of interesting fields:
+
+  `request.operation`: CREATE, UPDATE, DELETE, or CONNECT
+
+  `request.object`: the object being created or modified
+
+  `request.oldObject`: the object being modified (only for UPDATE)
+
+  `request.userInfo`: information about the user making the API request
+
+- `object` and `oldObject` are very convenient to block specific *modifications*
+
+  (e.g. making some labels or annotations immutable)
+
+(See [here][kyverno-request] for details.)
+
+[kyverno-request]: https://kyverno.io/docs/policy-types/cluster-policy/variables/#variables-from-admission-review-requests
 
 ---
 
 ## Generating objects
+
+- Let's review a fairly common use-case...
 
 - When we create a Namespace, we also want to automatically create:
 
@@ -539,13 +359,13 @@ Note: the `apiVersion` field appears to be optional.
 
 - Excerpt:
   ```yaml
-      generate: 
-        kind: LimitRange
-        name: default-limitrange
-        namespace: "{{request.object.metadata.name}}" 
-        data:
-          spec:
-            limits:
+    generate: 
+      kind: LimitRange
+      name: default-limitrange
+      namespace: "{{request.object.metadata.name}}" 
+      data:
+        spec:
+          limits:
   ```
 
 - Note that we have to specify the `namespace`
@@ -554,19 +374,86 @@ Note: the `apiVersion` field appears to be optional.
 
 ---
 
+## Templates and JMESpath
+
+- We can use `{{ }}` templates in Kyverno policies
+
+  (when generating or validating resources; in conditions, pre-conditions...)
+
+- This lets us access `request` as well as [a few other variables][kyverno-variables]
+
+- We can also use JMESPath expressions, for instance:
+
+  `{{request.object.spec.containers[?name=='worker'].image}}`
+
+  `{{request.object.spec.[containers,initContainers][][].image}}`
+
+- To experiment with JMESPath, use e.g. [jmespath.org] or [install the kyverno CLI][kyverno-cli]
+
+  (then use `kubectl kyverno jp query < data.json ...expression... `)
+
+[jmespath.org]: https://jmespath.org/
+[kyverno-cli]: https://kyverno.io/docs/kyverno-cli/install/
+[kyverno-variables]: https://kyverno.io/docs/policy-types/cluster-policy/variables/#pre-defined-variables
+
+---
+
+## Data sources
+
+- It's also possible to access data in Kubernetes ConfigMaps:
+  ```yaml
+    context:
+    - name: ingressconfig
+      configMap:
+        name: ingressconfig
+        namespace: {{request.object.metadata.namespace}}
+  ```
+
+- And then use it e.g. in a policy generating or modifying Ingress resources:
+  ```yaml
+  ...
+  host: {{request.object.metadata.name}}.{{ingressconfig.data.domainsuffix}}
+  ...
+  ```
+
+---
+
+## Kubernetes API calls
+
+- It's also possible to access arbitrary Kubernetes resources through API calls:
+  ```yaml
+    context:
+    - name: dns
+      apiCall:
+        urlPath: "/api/v1/namespaces/kube-system/services/kube-dns"
+        jmesPath: "spec.clusterIP"
+  ```
+
+- And then use that e.g. in a mutating policy:
+  ```yaml
+    mutate:
+      patchStrategicMerge:
+        spec:
+          containers:
+          - (name): "*"
+            env:
+            - name: DNS
+              value: "{{dns}}"
+  ```
+
+---
+
 ## Lifecycle
 
 - After generated objects have been created, we can change them
 
-  (Kyverno won't update them)
+  (Kyverno won't automatically revert them)
 
 - Except if we use `clone` together with the `synchronize` flag
 
   (in that case, Kyverno will watch the cloned resource)
 
 - This is convenient for e.g. ConfigMaps shared between Namespaces
-
-- Objects are generated only at *creation* (not when updating an old object)
 
 ---
 
@@ -586,11 +473,13 @@ class: extra-details
 
   (in the generated object `metadata`)
 
-- See [Linking resources with ownerReferences][ownerref] for an example
+- See [Linking resources with ownerReferences][kyverno-ownerref] for an example
 
-[ownerref]: https://kyverno.io/docs/writing-policies/generate/#linking-trigger-with-downstream
+[kyverno-ownerref]: https://kyverno.io/docs/policy-types/cluster-policy/generate/#linking-trigger-with-downstream
 
 ---
+
+class: extra-details
 
 ## Asynchronous creation
 
@@ -608,7 +497,43 @@ class: extra-details
 
 ---
 
-## Footprint
+class: extra-details
+
+## Autogen rules for Pod validating policies
+
+- In Kubernetes, we rarely create Pods directly
+
+  (instead, we create controllers like Deployments, DaemonSets, Jobs, etc)
+
+- As a result, Pod validating policies can be tricky to debug
+
+  (the policy blocks invalid Pods, but doesn't block their controller)
+
+- Kyverno helps us with "autogen rules"
+
+  (when we create a Pod policy, it will automatically create policies on Pod controllers)
+
+- This can be customized if needed; [see documentation for details][kyverno-autogen]
+
+  (it can be disabled, or extended to Custom Resources)
+
+[kyverno-autogen]: https://kyverno.io/docs/policy-types/cluster-policy/autogen/
+
+---
+
+## Footprint (current versions)
+
+- 14 CRDs
+
+- 10 webhooks
+
+- 6 services, 4 Deployments, 2 ConfigMaps
+
+- Internal resources (GenerateRequest) "parked" in a Namespace
+
+---
+
+## Footprint (older versions)
 
 - 8 CRDs
 
@@ -616,17 +541,13 @@ class: extra-details
 
 - 2 Services, 1 Deployment, 2 ConfigMaps
 
-- Internal resources (GenerateRequest) "parked" in a Namespace
-
-- Kyverno packs a lot of features in a small footprint
+*We can see the number of resources increased over time, as Kyverno added features.*
 
 ---
 
 ## Strengths
 
 - Kyverno is very easy to install
-
-  (it's harder to get easier than one `kubectl apply -f`)
 
 - The setup of the webhooks is fully automated
 
@@ -638,45 +559,11 @@ class: extra-details
 
   (e.g. `matchExpressions`)
 
----
+- It has pretty good documentation, including many examples
 
-## Caveats
+- There is also a CLI tool (not discussed here)
 
-- The `{{ request }}` context is powerful, but difficult to validate
-
-  (Kyverno can't know ahead of time how it will be populated)
-
-- Advanced policies (with conditionals) have unique, exotic syntax:
-  ```yaml
-      spec:
-	    =(volumes):
-	      =(hostPath):
-	        path: "!/var/run/docker.sock"
-  ```
-
-- Writing and validating policies can be difficult
-
----
-
-class: extra-details
-
-## Pods created by controllers
-
-- When e.g. a ReplicaSet or DaemonSet creates a pod, it "owns" it
-
-  (the ReplicaSet or DaemonSet is listed in the Pod's `.metadata.ownerReferences`)
-
-- Kyverno treats these Pods differently
-
-- If my understanding of the code is correct (big *if*):
-
-  - it skips validation for "owned" Pods
-
-  - instead, it validates their controllers
-
-  - this way, Kyverno can report errors on the controller instead of the pod
-
-- This can be a bit confusing when testing policies on such pods!
+- It continues to evolve and gain new features
 
 ???
 

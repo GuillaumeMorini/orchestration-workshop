@@ -4,20 +4,30 @@
 # 500 MB RAM
 # 10% CPU
 # (See https://docs.google.com/document/d/1n0lwp6rQKQUIuo_A5LQ1dgCzrmjkDjmDtNj1Jn92UrI)
-# PRO2-XS = 4 core, 16 gb
+# Note that we also need 2 volumes per vcluster (one for vcluster itself, one for shpod),
+# so we might hit the maximum number of volumes per node!
+# (the limit on Scaleway is 15 volumes per node; 8 on Linode apparently? seems low, to check!)
+#
+# With vspod:
+# 800 MB RAM
+# 33% CPU
+#
+# PRO2-XS = 4 core, 16 GB
+# DEV1-XL = 4 core, 12 GB
 
 set -e
 
+KONKTAG=konk
 PROVIDER=scaleway
-STUDENTS=30
+STUDENTS=2
 
 case "$PROVIDER" in
 linode)
   export TF_VAR_node_size=g6-standard-6
-  export TF_VAR_location=us-east
+  export TF_VAR_location=fr-par
   ;;
 scaleway)
-  export TF_VAR_node_size=PRO2-XS
+  export TF_VAR_node_size=DEV1-XL
   # For tiny testing purposes, these are okay too:
   #export TF_VAR_node_size=PLAY2-NANO
   export TF_VAR_location=fr-par-2
@@ -28,11 +38,13 @@ esac
 export KUBECONFIG=~/kubeconfig
 
 if [ "$PROVIDER" = "kind" ]; then
-  kind create cluster --name konk
+  kind create cluster --name $KONKTAG
   ADDRTYPE=InternalIP
 else
-  ./labctl create --mode mk8s --settings settings/konk.env --provider $PROVIDER --tag konk
-  cp tags/konk/stage2/kubeconfig.101 $KUBECONFIG
+  if ! [ -f tags/$KONKTAG/stage2/kubeconfig.101 ]; then
+    ./labctl create --mode mk8s --settings settings/konk.env --provider $PROVIDER --tag $KONKTAG
+  fi
+  cp tags/$KONKTAG/stage2/kubeconfig.101 $KUBECONFIG
   ADDRTYPE=ExternalIP
 fi
 

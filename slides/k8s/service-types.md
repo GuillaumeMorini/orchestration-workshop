@@ -61,6 +61,8 @@ class: pic
 - This is available only when the underlying infrastructure provides some kind of
   "load balancer as a service"
 
+  (or in some special cases with add-ons like [MetalLB])
+
 - Each service of that type will typically cost a little bit of money
 
   (e.g. a few cents per hour on AWS or GCE)
@@ -68,6 +70,8 @@ class: pic
 - Ideally, traffic would flow directly from the load balancer to the pods
 
 - In practice, it will often flow through a `NodePort` first
+
+[MetalLB]: https://metallb.io/
 
 ---
 
@@ -163,11 +167,13 @@ class: pic
 
 - Our code needs to be changed to connect to that new port number
 
-- Under the hood: `kube-proxy` sets up a bunch of `iptables` rules on our nodes
+- Under the hood: `kube-proxy` sets up a bunch of port forwarding rules on our nodes
 
-- Sometimes, it's the only available option for external traffic
+  (using `iptables`, `ipvs`, `nftables`... multiple implementations are available)
 
-  (e.g. most clusters deployed with kubeadm or on-premises)
+- Very useful option for external traffic when `LoadBalancer` Services aren't available
+
+  (e.g. some clusters deployed on-premises and/or with kubeadm)
 
 ---
 
@@ -421,15 +427,21 @@ class: extra-details
 
 - [KEP4444, Traffic Distribution for Services][kep4444]
 
-- In alpha since Kubernetes 1.30, beta since Kubernetes 1.31
+- Supersedes topology aware routing
 
-- Should eventually supersede topology aware routing
+- Multiple values are supported
 
-- Can be set to `PreferClose` (more values might be supported later)
+- `PreferClose` (alpha since K8S 1.30, beta since K8S 1.31, stable since K8S 1.33)
 
-- The meaning of `PreferClose` is implementation dependent
+  "try to route traffic to endpoints in the same zone as the client"
 
-  (with kube-proxy, it should work like topology aware routing: stay in a zone)
+- `PreferSameZone` (beta since K8S 1.34)
+
+  "same as `PreferClose` but clearer about the intended semantics"
+
+- `PreferSameNode` (beta since K8S 1.34)
+
+  "try to route traffic to endpoints on the same node as the client"
 
 [kep4444]: https://github.com/kubernetes/enhancements/issues/4444
 
