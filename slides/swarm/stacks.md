@@ -245,7 +245,7 @@ The curl command should now output:
     <br/>
     (instead of `<projectname>_<servicename>:latest`)
 
-  - it can be pushed to a registry with `docker-compose push`
+  - it can be pushed to a registry with `docker compose push`
 
 - Example:
 
@@ -263,8 +263,8 @@ The curl command should now output:
 
 - Try it:
   ```bash
-  docker-compose -f dockercoins.yml build
-  docker-compose -f dockercoins.yml push
+  docker compose -f dockercoins.yml build
+  docker compose -f dockercoins.yml push
   ```
 
 ]
@@ -352,7 +352,7 @@ class: extra-details
 
 - `extends` doesn't work with `docker stack deploy`
 
-  (But you can use `docker-compose config` to "flatten" your configuration)
+  (But you can use `docker compose config` to "flatten" your configuration)
 
 ---
 

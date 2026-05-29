@@ -199,8 +199,8 @@ will have equal success with Fluent or other logging stacks!*
 ```bash
 $ git clone https://github.com/jpetazzo/container.training
 $ cd container.training
-$ cd elk
-$ docker-compose up
+$ cd elk 
+$ docker compose up
 ```
 
 - Let's have a look at the Compose file while it's deploying.

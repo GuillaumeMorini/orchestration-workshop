@@ -39,7 +39,7 @@ Let's start this before we look around, as downloading will take a little time..
 
 - Use Compose to build and run all containers:
   ```bash
-  docker-compose up
+  docker compose up
   ```
 
 <!--

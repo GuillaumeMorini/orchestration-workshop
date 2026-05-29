@@ -179,8 +179,8 @@ services:
   ```bash
   export REGISTRY
   export TAG=v0.1
-  docker-compose build
-  docker-compose push
+  docker compose build
+  docker compose push
   ```
 
 ]

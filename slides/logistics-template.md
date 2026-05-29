@@ -3,7 +3,7 @@
 - Hello! I am Guillaume Morini ([@GuillaumeMorini])
    - I have worked at PSA Peugeot Citroën <img src="images/psa.jpeg" alt="PSA" width="64"/>, PMU 🏇, Cisco <img src="images/cisco2.png" alt="Cisco" width="64"/>, Docker 🐳, VMware <img src="images/vmware.png" alt="VMware" width="32"/>and Google Cloud <img src="images/google_cloud.png" alt="Google Cloud" width="32"/>
 
-- The training will run for 4 hours, with a 30 minutes break in the middle
+- The training will run for 3 hours and 30 minutes
 
 - Feel free to interrupt for questions at any time. 
   - *Especially when you see full screen container pictures!*

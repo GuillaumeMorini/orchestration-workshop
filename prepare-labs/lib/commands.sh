@@ -441,7 +441,7 @@ _cmd_docker() {
     sudo curl -fsSL -o /usr/local/bin/docker-compose \
       https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-$COMPOSE_PLATFORM
     sudo chmod +x /usr/local/bin/docker-compose
-    docker-compose version
+    docker compose version
 
     ### Install docker-machine.
     ##VERSION## https://github.com/docker/machine/releases
@@ -1471,7 +1471,7 @@ test_vm() {
         "cat /etc/hosts" \
         "hostnamectl status" \
         "docker version | grep Version -B1" \
-        "docker-compose version" \
+        "docker compose version" \
         "docker-machine version" \
         "docker images" \
         "docker ps" \

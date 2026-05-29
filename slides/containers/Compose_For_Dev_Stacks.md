@@ -482,7 +482,6 @@ class: extra-details
   - `docker compose` command to deploy Compose stacks to some clouds
 
   - in Go instead of Python
-
   - progressively getting feature parity with `docker compose`
 
   - also provides numerous improvements (e.g. leverages BuildKit by default)

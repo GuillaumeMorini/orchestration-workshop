@@ -230,15 +230,15 @@ General workflow:
 
 .lab[
 
-- Change to a new directory:
+- Clone the repository:
   ```bash
-  mkdir ~/kustomcoins
+  git clone https://github.com/jpetazzo/kubercoins
   cd ~/kustomcoins
   ```
 
 - Run `kustomize create` with the kustomcoins repository:
   ```bash
-  kustomize create --resources https://github.com/jpetazzo/kubercoins
+  kustomize create --autodetect
   ```
 
 <!-- ```look at the files``` -->

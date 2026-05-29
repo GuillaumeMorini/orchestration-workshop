@@ -85,10 +85,7 @@ content:
   - k8s/kubectlproxy.md
   - k8s/daemonset.md
   - k8s/rollout.md
-- # DAY 6 & 7
-  - k8s/netpol.md
-  - k8s/netpol-tp.md
-- # DAY 8
+- # DAY 6
   - k8s/helm-intro.md
   - k8s/helm-chart-format.md
   - k8s/helm-values-schema-validation.md
@@ -97,4 +94,6 @@ content:
   - k8s/helm-create-better-chart.md
   - k8s/helm-dependencies.md
   - k8s/kustomize.md
-
+- # DAY 7
+  - k8s/netpol.md
+  - k8s/netpol-tp.md
